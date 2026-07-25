@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+httpx
+python-docx
+openpyxl
+Pillow
+pytesseract
+pypdf2
+python-multipart
+pyautogui
+aiosqlite
+requests
+aliyun-python-sdk-core
+aliyun-python-sdk-dysmsapi

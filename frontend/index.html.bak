@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#6366f1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>智能体工作台</title>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="/icons/icon-192.png">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="智能体工作台">
+    <meta name="apple-mobile-web-app-title" content="智能体工作台">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152.png">
+    <meta name="msapplication-TileImage" content="/icons/icon-144.png">
+    <meta name="msapplication-TileColor" content="#6366f1">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                animation: {
+                    'slide-up': 'slideUp 0.3s ease-out',
+                    'fade-in': 'fadeIn 0.25s ease-out',
+                    'pulse-slow': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                }
+            }
+        }
+    }
+    </script>
+    <style>
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+        .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0); }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+        .page { display: none; }
+        .page.active { display: flex; flex-direction: column; }
+        .fade-in { animation: fadeIn 0.25s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .skill-card { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .skill-card:active { transform: scale(0.97); }
+        .agent-card { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .agent-card:active { transform: scale(0.97); }
+        .tab-btn { transition: all 0.2s ease; }
+        .tab-btn.active { color: #6366f1; }
+        .tab-btn.active .tab-icon { background: linear-gradient(135deg, #eef2ff, #e0e7ff); transform: scale(1.05); }
+        .tab-icon { transition: all 0.2s ease; }
+        ::-webkit-scrollbar { width: 0; height: 0; }
+        input:focus, textarea:focus { outline: none; box-shadow: 0 0 0 2px rgba(99,102,241,0.25); }
+        .msg-bubble { max-width: 82%; word-wrap: break-word; }
+        .chat-messages { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
+        .skill-detail-page { position: absolute; inset: 0; z-index: 40; background: white; display: none; flex-direction: column; }
+        .skill-detail-page.active { display: flex; }
+        .result-area { max-height: 40vh; overflow-y: auto; }
+        @keyframes bounce-dot { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+        .typing-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #6366f1; animation: bounce-dot 1.4s infinite ease-in-out both; }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        .typing-dot:nth-child(3) { animation-delay: 0s; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 60; display: none; align-items: flex-end; justify-content: center; }
+        .modal-overlay.active { display: flex; }
+        .modal-content { background: white; border-radius: 24px 24px 0 0; width: 100%; max-width: 32rem; max-height: 88vh; overflow-y: auto; animation: slideUp 0.3s ease-out; }
+        .icon-picker { display: flex; flex-wrap: wrap; gap: 6px; }
+        .icon-option { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; border: 2px solid transparent; transition: all 0.15s ease; background: #f8fafc; }
+        .icon-option.selected { border-color: #6366f1; background: #eef2ff; box-shadow: 0 0 0 2px rgba(99,102,241,0.2); }
+        .icon-option:active { transform: scale(0.88); }
+        .gradient-border { position: relative; }
+        .gradient-border::before { content: ''; position: absolute; inset: -1px; border-radius: inherit; padding: 1px; background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2)); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); mask-composite: exclude; -webkit-mask-composite: xor; pointer-events: none; }
+        .markdown-content h1, .markdown-content h2, .markdown-content h3 { font-weight: 600; margin: 8px 0 4px; }
+        .markdown-content p { margin: 4px 0; }
+        .markdown-content code { background: #f1f5f9; padding: 1px 4px; border-radius: 4px; font-size: 0.85em; }
+        .markdown-content pre { background: #1e293b; color: #e2e8f0; padding: 12px; border-radius: 8px; overflow-x: auto; margin: 8px 0; }
+        .markdown-content pre code { background: transparent; color: inherit; padding: 0; }
+        .markdown-content ul, .markdown-content ol { padding-left: 20px; margin: 4px 0; }
+        .markdown-content li { margin: 2px 0; }
+        .markdown-content blockquote { border-left: 3px solid #6366f1; padding-left: 12px; color: #64748b; margin: 8px 0; }
+        .skill-status-badge { position: absolute; top: -4px; right: -4px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; }
+    </style>
+  <!-- 百度统计 -->
+  <script>
+  var _hmt = _hmt || [];
+  (function() {
+    var hm = document.createElement("script");
+    hm.src = "https://hm.baidu.com/hm.js?e74a11c56d1f8632b2d9ecdf1ac2c43e";
+    var s = document.getElementsByTagName("script")[0]; 
+    s.parentNode.insertBefore(hm, s);
+  })();
+  </script>
+</head>
+<body class="bg-slate-50 h-screen overflow-hidden">
+
+<div id="app" class="h-full flex flex-col max-w-lg mx-auto bg-white relative">
+
+    <!-- Page: 工作台 -->
+    <div id="page-home" class="page active h-full" style="padding-bottom: 80px;">
+        <div class="flex items-center justify-between px-5 py-3.5 bg-white/95 backdrop-blur-md border-b border-slate-100/80 sticky top-0 z-10">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200/50">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                </div>
+                <div>
+                    <h1 class="text-base font-bold text-slate-800">智能体工作台</h1>
+                    <p class="text-[10px] text-slate-400 -mt-0.5">AI Agent Workspace</p>
+                </div>
+            </div>
+            <button onclick="navigateTo('profile')" class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-indigo-500 rounded-xl hover:bg-indigo-50 transition-all">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </button>
+        </div>
+        <div class="flex-1 overflow-y-auto px-4 py-4">
+            <div class="mb-5">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">预置技能</h2>
+                    <span class="text-[10px] text-indigo-400 bg-indigo-50 px-2 py-0.5 rounded-full font-medium">6个可用</span>
+                </div>
+                <div class="grid grid-cols-2 gap-3" id="skills-grid"></div>
+            </div>
+            <div class="mb-4">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">自定义技能</h2>
+                    <span class="text-[10px] text-indigo-500 cursor-pointer font-medium" onclick="showToast('更多技能即将上线')">+ 添加</span>
+                </div>
+                <div class="grid grid-cols-3 gap-3" id="custom-slots"></div>
+                <p class="text-center text-[10px] text-slate-300 mt-4">更多技能即将上线</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page: 智能体 -->
+    <div id="page-agents" class="page h-full" style="padding-bottom: 80px; position: relative; overflow: hidden;">
+        <div id="agents-list-view" class="h-full flex flex-col">
+            <div class="flex items-center justify-between px-5 py-3.5 bg-white/95 backdrop-blur-md border-b border-slate-100/80 sticky top-0 z-10">
+                <div class="flex items-center gap-2">
+                    <h1 class="text-base font-bold text-slate-800">智能体</h1>
+                    <span id="agent-count" class="text-[10px] text-indigo-400 bg-indigo-50 px-2 py-0.5 rounded-full font-medium"></span>
+                </div>
+                <button onclick="openCreateAgent()" class="flex items-center gap-1 text-xs text-white font-medium bg-gradient-to-r from-indigo-500 to-purple-500 px-3.5 py-1.5 rounded-full shadow-sm shadow-indigo-200/50 hover:shadow-md transition-all active:scale-95">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                    添加智能体
+                </button>
+            </div>
+            <div class="flex-1 overflow-y-auto px-4 py-4">
+                <div class="grid grid-cols-2 gap-3" id="agents-grid"></div>
+            </div>
+        </div>
+        <!-- 智能体对话视图 -->
+        <div id="agent-chat-view" class="h-full flex flex-col absolute inset-0 bg-white z-20" style="display:none;">
+            <div class="flex items-center px-4 py-3 bg-white/95 backdrop-blur-md border-b border-slate-100/80 sticky top-0 z-10">
+                <button onclick="closeAgentChat()" class="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-all mr-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                </button>
+                <div id="agent-chat-avatar" class="w-9 h-9 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0"></div>
+                <div class="ml-2.5 flex-1 min-w-0">
+                    <h2 id="agent-chat-name" class="font-semibold text-slate-800 text-sm truncate"></h2>
+                    <p id="agent-chat-role" class="text-xs text-slate-400 truncate"></p>
+                </div>
+                <div class="flex items-center gap-1">
+                    <span id="agent-status" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <button onclick="clearAgentChat()" class="ml-1 text-xs text-slate-400 hover:text-red-400 transition-colors px-2 py-1 rounded-lg hover:bg-red-50">清空</button>
+                </div>
+            </div>
+            <div id="agent-chat-messages" class="chat-messages px-4 py-4 space-y-3 flex-1"></div>
+            <div id="agent-image-preview" class="px-3 pt-2 hidden">
+                <div id="agent-image-list" class="flex flex-wrap gap-2"></div>
+            </div>
+            <div class="bg-white border-t border-slate-100 px-3 py-2.5 flex items-end gap-2 sticky bottom-0 safe-bottom">
+                <div class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-xl transition-all cursor-pointer flex-shrink-0 active:scale-90" onclick="document.getElementById('agent-file-input').click()">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                </div>
+                <input type="file" id="agent-file-input" class="hidden" accept="image/*" multiple onchange="handleAgentImageUpload(event)">
+                <textarea id="agent-chat-input" rows="1" placeholder="输入消息..." class="flex-1 resize-none border border-slate-200 rounded-2xl px-4 py-2.5 text-sm focus:border-indigo-400 transition-all bg-slate-50 focus:bg-white" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAgentMessage()}"></textarea>
+                <button id="agent-send-btn" onclick="sendAgentMessage()" class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 text-white rounded-xl flex items-center justify-center hover:shadow-lg hover:shadow-indigo-200/50 transition-all shadow-sm flex-shrink-0 active:scale-90">
+                    <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page: 任务 -->
+    <div id="page-tasks" class="page h-full" style="padding-bottom: 80px;">
+        <div class="flex items-center justify-between px-5 py-3.5 bg-white/95 backdrop-blur-md border-b border-slate-100/80 sticky top-0 z-10">
+            <h1 class="text-base font-bold text-slate-800">任务记录</h1>
+            <button onclick="clearTasks()" class="text-xs text-slate-400 hover:text-red-400 transition-colors px-2 py-1 rounded-lg hover:bg-red-50">清空</button>
+        </div>
+        <div id="task-list" class="flex-1 overflow-y-auto px-4 py-3 space-y-2.5">
+            <div id="task-empty" class="flex flex-col items-center justify-center h-full">
+                <div class="w-20 h-20 bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl flex items-center justify-center mb-4">
+                    <svg class="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                </div>
+                <p class="text-sm text-slate-500 font-medium">还没有任务记录</p>
+                <p class="text-xs text-slate-400 mt-1">使用技能或智能体后会自动记录</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page: 我的 -->
+    <div id="page-profile" class="page h-full" style="padding-bottom: 80px;">
+        <div class="px-5 py-3.5 bg-white/95 backdrop-blur-md border-b border-slate-100/80 sticky top-0 z-10">
+            <h1 class="text-base font-bold text-slate-800">我的</h1>
+        </div>
+        <div class="flex-1 overflow-y-auto">
+            <div id="profile-user-section" class="px-5 py-6 flex items-center gap-4">
+                <div class="w-16 h-16 bg-gradient-to-br from-indigo-400 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-indigo-200/50">U</div>
+                <div>
+                    <p class="font-bold text-slate-800 text-lg">未登录</p>
+                    <p class="text-xs text-slate-400 mt-0.5">点击登录享更多权益</p>
+                </div>
+                <button id="profile-login-btn" onclick="openLoginModal()" class="ml-auto text-xs font-medium text-white bg-gradient-to-r from-indigo-500 to-purple-500 px-4 py-2 rounded-full shadow-sm shadow-indigo-200/50 active:scale-95 transition-all">登录</button>
+            </div>
+            <!-- Credits Card -->
+            <div class="mx-4 mb-4 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl p-5 text-white shadow-lg shadow-indigo-200/50">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-medium opacity-90">我的积分</span>
+                    <button onclick="openCreditsModal()" class="text-xs bg-white/20 hover:bg-white/30 backdrop-blur-sm px-3 py-1 rounded-full transition-all">充值</button>
+                </div>
+                <p id="credits-balance" class="text-3xl font-bold">--</p>
+                <div class="flex items-center gap-4 mt-3 text-xs opacity-80">
+                    <span>对话(文字): 30积分/次</span>
+                    <span>对话(图片): 50积分/次</span>
+                    <span>技能: 20积分/次</span>
+                </div>
+            </div>
+            <!-- Recent Credit Logs -->
+            <div class="mx-4 mb-4">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-sm font-semibold text-slate-700">积分记录</h3>
+                    <button onclick="refreshCredits()" class="text-xs text-indigo-500 hover:text-indigo-600">刷新</button>
+                </div>
+                <div id="credit-logs" class="space-y-2">
+                    <p class="text-xs text-slate-400 text-center py-4">加载中...</p>
+                </div>
+            </div>
+            <div class="px-4 space-y-1 pb-4">
+                <div onclick="showToast('接入渠道功能开发中')" class="flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors group">
+                    <div class="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center"><svg class="w-4.5 h-4.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg></div>
+                    <span class="flex-1 text-sm text-slate-700">接入渠道</span>
+                    <svg class="w-4 h-4 text-slate-300 group-hover:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </div>
+                <div onclick="showToast('知识库功能开发中')" class="flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors group">
+                    <div class="w-9 h-9 bg-emerald-50 rounded-xl flex items-center justify-center"><svg class="w-4.5 h-4.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg></div>
+                    <span class="flex-1 text-sm text-slate-700">知识库</span>
+                    <svg class="w-4 h-4 text-slate-300 group-hover:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </div>
+                <div onclick="showToast('使用统计功能开发中')" class="flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors group">
+                    <div class="w-9 h-9 bg-amber-50 rounded-xl flex items-center justify-center"><svg class="w-4.5 h-4.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></div>
+                    <span class="flex-1 text-sm text-slate-700">使用统计</span>
+                    <svg class="w-4 h-4 text-slate-300 group-hover:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </div>
+                <div class="flex items-center gap-3 px-4 py-3.5 rounded-xl">
+                    <div class="w-9 h-9 bg-slate-50 rounded-xl flex items-center justify-center"><svg class="w-4.5 h-4.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+                    <span class="flex-1 text-sm text-slate-700">关于</span>
+                    <span class="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">v2.2.0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Skill Detail Page -->
+    <div id="skill-detail" class="skill-detail-page">
+        <div class="flex items-center px-4 py-3 bg-white/95 backdrop-blur-md border-b border-slate-100/80">
+            <button onclick="closeSkillDetail()" class="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-all mr-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <div id="detail-header" class="flex items-center gap-2.5 flex-1"></div>
+        </div>
+        <div class="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+            <div id="detail-input-area" class="space-y-3"></div>
+            <button id="detail-exec-btn" onclick="executeSkill()" class="w-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-medium rounded-xl py-3.5 text-sm transition-all shadow-lg shadow-indigo-200/50 active:scale-[0.98] disabled:opacity-50">开始执行</button>
+            <div id="detail-result-area" class="hidden">
+                <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">执行结果</h3>
+                <div id="detail-result" class="bg-slate-50 rounded-xl p-4 text-sm text-slate-700 result-area border border-slate-100"></div>
+            </div>
+            <div id="detail-history" class="hidden">
+                <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">历史记录</h3>
+                <div id="detail-history-list" class="space-y-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 创建智能体 Modal -->
+    <div id="create-agent-modal" class="modal-overlay" onclick="if(event.target===this)closeCreateAgent()">
+        <div class="modal-content px-5 pt-5 pb-8 safe-bottom">
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="text-lg font-bold text-slate-800">添加智能体</h3>
+                <button onclick="closeCreateAgent()" class="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">选择图标</label>
+                    <div class="icon-picker" id="icon-picker"></div>
+                </div>
+                <div>
+                    <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 block">智能体名称</label>
+                    <input type="text" id="agent-name-input" placeholder="如：代码助手、翻译官..." class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:border-indigo-400 transition-all bg-slate-50 focus:bg-white" maxlength="20">
+                </div>
+                <div>
+                    <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 block">角色分工</label>
+                    <input type="text" id="agent-role-input" placeholder="如：负责代码审查和Bug修复" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:border-indigo-400 transition-all bg-slate-50 focus:bg-white" maxlength="50">
+                </div>
+                <div>
+                    <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 block">详细设定 <span class="text-slate-300 font-normal normal-case">(可选)</span></label>
+                    <textarea id="agent-prompt-input" rows="3" placeholder="描述专业能力、回答风格、工作原则..." class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm resize-none focus:border-indigo-400 transition-all bg-slate-50 focus:bg-white"></textarea>
+                </div>
+                <button onclick="saveNewAgent()" class="w-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-medium rounded-xl py-3.5 text-sm transition-all shadow-lg shadow-indigo-200/50 active:scale-[0.98]">创建智能体</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Credits Recharge Modal -->
+    <div id="credits-modal" class="modal-overlay" onclick="if(event.target===this)closeCreditsModal()">
+        <div class="modal-content p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="font-bold text-slate-800 text-lg">购买积分</h2>
+                <button onclick="closeCreditsModal()" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400">✕</button>
+            </div>
+            <div id="credits-packages" class="space-y-3"></div>
+            <p class="text-xs text-slate-400 mt-4 text-center">1元 = 3000积分 · 支付成功后积分即时到账</p>
+        </div>
+    </div>
+
+    <!-- Insufficient Credits Modal -->
+    <div id="insufficient-modal" class="modal-overlay" onclick="if(event.target===this)closeInsufficientModal()">
+        <div class="modal-content p-6 text-center">
+            <div class="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            </div>
+            <h3 class="font-bold text-slate-800 text-lg mb-2">积分不足</h3>
+            <p id="insufficient-msg" class="text-sm text-slate-500 mb-5">继续使用需要更多积分</p>
+            <button onclick="closeInsufficientModal();openCreditsModal()" class="w-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-medium rounded-xl py-3 text-sm shadow-lg shadow-indigo-200/50">去充值</button>
+            <button onclick="closeInsufficientModal()" class="w-full mt-2 text-sm text-slate-400 py-2">稍后再说</button>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="modal-overlay" onclick="if(event.target===this)closeLoginModal()">
+        <div class="modal-content px-6 pt-6 pb-8 safe-bottom">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-bold text-slate-800">手机号登录</h3>
+                <button onclick="closeLoginModal()" class="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">手机号</label>
+                    <input type="tel" id="login-phone" placeholder="请输入手机号" maxlength="11" class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:border-indigo-400 transition-all bg-slate-50 focus:bg-white" oninput="this.value=this.value.replace(/[^\d]/g,'')">
+                </div>
+                <div>
+                    <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">验证码</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="login-code" placeholder="6位验证码" maxlength="6" class="flex-1 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:border-indigo-400 transition-all bg-slate-50 focus:bg-white" oninput="this.value=this.value.replace(/[^\d]/g,'')">
+                        <button id="send-code-btn" onclick="sendLoginCode()" class="px-4 py-3 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-all whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">发送验证码</button>
+                    </div>
+                </div>
+                <div id="dev-code-hint" class="hidden bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5 text-xs text-amber-700">
+                    🔧 开发模式：验证码已自动填入
+                </div>
+                <button id="login-btn" onclick="doLogin()" class="w-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-medium rounded-xl py-3.5 text-sm shadow-lg shadow-indigo-200/50 active:scale-[0.98] transition-all disabled:opacity-50">登录 / 注册</button>
+                <p class="text-xs text-slate-400 text-center">首次登录将自动注册账号</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-100/80 flex items-center justify-around py-1.5 safe-bottom z-30">
+        <button onclick="navigateTo('home')" class="tab-btn active flex flex-col items-center gap-0.5 px-5 py-1.5 rounded-xl" data-tab="home">
+            <span class="tab-icon w-7 h-7 rounded-lg flex items-center justify-center">
+                <svg class="w-4.5 h-4.5 text-current" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            </span>
+            <span class="text-[10px] font-medium">工作台</span>
+        </button>
+        <button onclick="navigateTo('agents')" class="tab-btn flex flex-col items-center gap-0.5 px-5 py-1.5 rounded-xl" data-tab="agents">
+            <span class="tab-icon w-7 h-7 rounded-lg flex items-center justify-center">
+                <svg class="w-4.5 h-4.5 text-current" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            </span>
+            <span class="text-[10px] font-medium">智能体</span>
+        </button>
+        <button onclick="navigateTo('tasks')" class="tab-btn flex flex-col items-center gap-0.5 px-5 py-1.5 rounded-xl" data-tab="tasks">
+            <span class="tab-icon w-7 h-7 rounded-lg flex items-center justify-center">
+                <svg class="w-4.5 h-4.5 text-current" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+            </span>
+            <span class="text-[10px] font-medium">任务</span>
+        </button>
+        <button onclick="navigateTo('profile')" class="tab-btn flex flex-col items-center gap-0.5 px-5 py-1.5 rounded-xl" data-tab="profile">
+            <span class="tab-icon w-7 h-7 rounded-lg flex items-center justify-center">
+                <svg class="w-4.5 h-4.5 text-current" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+            </span>
+            <span class="text-[10px] font-medium">我的</span>
+        </button>
+    </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-800/95 text-white text-sm px-5 py-2.5 rounded-xl shadow-2xl z-50 opacity-0 pointer-events-none transition-opacity duration-200 backdrop-blur-sm"></div>
+
+<script>
+// ===== 配置 =====
+const API_BASE = '/api';
+
+// ===== 数据 =====
+const PRESET_SKILLS = [
+    { id: 'doc_generator', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>', name: '文档生成', desc: 'Word/PDF/Markdown自动生成', color: 'from-blue-500 to-indigo-600', bgLight: 'bg-blue-50', textColor: 'text-blue-600', inputType: 'textarea', placeholder: '描述你要生成的文档内容...', tags: ['文档', '报告'] },
+    { id: 'spreadsheet', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>', name: '表格处理', desc: 'Excel数据整理、公式、图表', color: 'from-emerald-500 to-green-600', bgLight: 'bg-emerald-50', textColor: 'text-emerald-600', inputType: 'file+text', placeholder: '上传Excel或描述数据需求...', tags: ['表格', '数据'] },
+    { id: 'image_processor', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>', name: '图片处理', desc: '批量加水印、裁剪、格式转换', color: 'from-pink-500 to-rose-600', bgLight: 'bg-pink-50', textColor: 'text-pink-600', inputType: 'file', placeholder: '上传图片进行批量处理...', tags: ['图片', '设计'] },
+    { id: 'ocr', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>', name: 'OCR识别', desc: '图片转文字、票据识别', color: 'from-amber-500 to-orange-600', bgLight: 'bg-amber-50', textColor: 'text-amber-600', inputType: 'file', placeholder: '上传图片进行文字识别...', tags: ['识别', '文字'] },
+    { id: 'data_extractor', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg>', name: '数据提取', desc: '图片中的表格数据转结构化', color: 'from-violet-500 to-purple-600', bgLight: 'bg-violet-50', textColor: 'text-violet-600', inputType: 'file', placeholder: '上传包含数据/表格的图片...', tags: ['数据', '提取'] },
+    { id: 'copywriter', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>', name: '文案生成', desc: '营销文案、公众号、小红书', color: 'from-cyan-500 to-teal-600', bgLight: 'bg-cyan-50', textColor: 'text-cyan-600', inputType: 'textarea', placeholder: '描述文案需求，如产品/风格/平台...', tags: ['文案', '营销'] }
+];
+
+const DEFAULT_AGENTS = [
+    { id: 'general', icon: '🧠', name: '通用助手', role: '全能型AI助手，处理各类任务', color: 'from-indigo-500 to-purple-600', welcome: '你好！我是你的通用助手，可以帮你解答问题、分析数据、提供建议。有什么需要帮忙的？', isPreset: true },
+    { id: 'doc_writer', icon: '📝', name: '文档专家', role: '文档撰写、排版、润色', color: 'from-blue-500 to-indigo-600', welcome: '你好！我是文档专家，擅长各类文档、报告、方案的撰写。告诉我你需要什么？', isPreset: true },
+    { id: 'analyst', icon: '📊', name: '数据分析师', role: '数据分析、报表生成、趋势洞察', color: 'from-emerald-500 to-teal-600', welcome: '你好！我是数据分析师，帮你分析数据、发现规律、生成可视化报表。', isPreset: true },
+    { id: 'creator', icon: '✨', name: '创意助手', role: '文案创作、营销策划、内容生成', color: 'from-pink-500 to-rose-600', welcome: '你好！我是创意助手，擅长文案创作和营销策划。告诉我你的创意需求！', isPreset: true },
+    { id: 'coder', icon: '💻', name: '代码助手', role: '代码编写、调试、架构设计', color: 'from-slate-600 to-gray-700', welcome: '你好！我是代码助手，帮你编写代码、调试Bug、优化架构。描述你的技术问题。', isPreset: true },
+    { id: 'translator', icon: '🌐', name: '翻译官', role: '多语言翻译、本地化、润色', color: 'from-amber-500 to-orange-600', welcome: '你好！我是翻译官，支持中英日韩法德西等多语言互译。发送内容即可翻译。', isPreset: true }
+];
+
+const AGENT_ICONS = ['🧠','📝','📊','✨','💻','🌐','🎨','🔬','📚','🎯','⚡','🛡️','🔧','📱','🎬','🏗️','🧪','📮','🔍','🤖','👨\u200d💼','👩\u200d💼','🦊','🐱','🐶','🦉','🚀','💡','🎵','🌟'];
+const AGENT_COLORS = ['from-indigo-500 to-purple-600','from-blue-500 to-indigo-600','from-emerald-500 to-teal-600','from-pink-500 to-rose-600','from-amber-500 to-orange-600','from-cyan-500 to-blue-600','from-violet-500 to-purple-600','from-slate-600 to-gray-700','from-red-500 to-pink-600','from-lime-500 to-green-600'];
+
+// ===== 状态 =====
+let taskHistory = JSON.parse(localStorage.getItem('ai_task_history') || '[]');
+let skillHistory = {};
+let currentSkillId = null;
+let customAgents = JSON.parse(localStorage.getItem('ai_custom_agents') || '[]');
+let agentChats = JSON.parse(localStorage.getItem('ai_agent_chats') || '{}');
+let currentAgentId = null;
+let selectedIcon = '🤖';
+let isSending = false;
+let pendingImages = []; // { dataUrl, name }
+
+// ===== 初始化 =====
+// ===== 设备ID（用户身份）=====
+function getDeviceId() {
+    let id = localStorage.getItem('ai_device_id');
+    if (!id) {
+        id = 'dev_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('ai_device_id', id);
+    }
+    return id;
+}
+const DEVICE_ID = getDeviceId();
+
+// ===== 认证状态 =====
+let AUTH_TOKEN = localStorage.getItem('ai_auth_token') || '';
+let AUTH_USER = null; // {id, phone, nickname, credits}
+
+function authHeaders() {
+    const headers = {'Content-Type': 'application/json'};
+    if (AUTH_TOKEN) headers['Authorization'] = 'Bearer ' + AUTH_TOKEN;
+    return headers;
+}
+
+function isLoggedIn() { return !!AUTH_TOKEN; }
+
+async function checkAuth() {
+    if (!AUTH_TOKEN) { AUTH_USER = null; return; }
+    try {
+        const resp = await fetch(API_BASE + '/auth/me', { headers: authHeaders() });
+        if (resp.ok) {
+            AUTH_USER = await resp.json();
+        } else {
+            // Token expired
+            AUTH_TOKEN = '';
+            AUTH_USER = null;
+            localStorage.removeItem('ai_auth_token');
+        }
+    } catch(e) {
+        AUTH_USER = null;
+    }
+    updateProfileUI();
+}
+
+function updateProfileUI() {
+    const section = document.getElementById('profile-user-section');
+    const loginBtn = document.getElementById('profile-login-btn');
+    if (!section) return;
+
+    if (AUTH_USER) {
+        section.innerHTML = `
+            <div class="w-16 h-16 bg-gradient-to-br from-indigo-400 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-indigo-200/50">${(AUTH_USER.nickname || AUTH_USER.phone || 'U')[0]}</div>
+            <div class="flex-1 min-w-0">
+                <p class="font-bold text-slate-800 text-lg truncate">${escapeHtml(AUTH_USER.nickname || AUTH_USER.phone)}</p>
+                <p class="text-xs text-slate-400 mt-0.5">${escapeHtml(AUTH_USER.phone)} · 已使用 <span id="usage-count">${taskHistory.length}</span> 次</p>
+            </div>
+            <button onclick="doLogout()" class="text-xs font-medium text-slate-500 hover:text-red-500 bg-slate-100 hover:bg-red-50 px-3 py-1.5 rounded-full transition-all">退出</button>
+        `;
+    } else {
+        section.innerHTML = `
+            <div class="w-16 h-16 bg-gradient-to-br from-indigo-400 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-indigo-200/50">U</div>
+            <div>
+                <p class="font-bold text-slate-800 text-lg">未登录</p>
+                <p class="text-xs text-slate-400 mt-0.5">点击登录享更多权益</p>
+            </div>
+            <button id="profile-login-btn" onclick="openLoginModal()" class="ml-auto text-xs font-medium text-white bg-gradient-to-r from-indigo-500 to-purple-500 px-4 py-2 rounded-full shadow-sm shadow-indigo-200/50 active:scale-95 transition-all">登录</button>
+        `;
+    }
+}
+
+// ===== 登录弹窗 =====
+let loginCountdown = 0;
+let loginTimer = null;
+
+function openLoginModal() {
+    document.getElementById('login-phone').value = '';
+    document.getElementById('login-code').value = '';
+    document.getElementById('dev-code-hint').classList.add('hidden');
+    document.getElementById('send-code-btn').disabled = false;
+    document.getElementById('send-code-btn').textContent = '发送验证码';
+    document.getElementById('login-btn').disabled = false;
+    document.getElementById('login-modal').classList.add('active');
+}
+
+function closeLoginModal() {
+    document.getElementById('login-modal').classList.remove('active');
+    if (loginTimer) { clearInterval(loginTimer); loginTimer = null; }
+    loginCountdown = 0;
+}
+
+async function sendLoginCode() {
+    const phone = document.getElementById('login-phone').value.trim();
+    if (!/^1[3-9]\d{9}$/.test(phone)) { showToast('请输入正确的手机号'); return; }
+
+    const btn = document.getElementById('send-code-btn');
+    btn.disabled = true;
+
+    try {
+        const resp = await fetch(API_BASE + '/auth/send-code', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ phone })
+        });
+        const data = await resp.json();
+
+        if (!resp.ok) {
+            showToast(data.detail || '发送失败');
+            btn.disabled = false;
+            return;
+        }
+
+        // 开发模式自动填入验证码
+        if (data.code) {
+            document.getElementById('login-code').value = data.code;
+            document.getElementById('dev-code-hint').classList.remove('hidden');
+        }
+
+        showToast('验证码已发送');
+
+        // 倒计时60秒
+        loginCountdown = 60;
+        btn.textContent = loginCountdown + 's';
+        loginTimer = setInterval(() => {
+            loginCountdown--;
+            if (loginCountdown <= 0) {
+                clearInterval(loginTimer);
+                loginTimer = null;
+                btn.disabled = false;
+                btn.textContent = '发送验证码';
+            } else {
+                btn.textContent = loginCountdown + 's';
+            }
+        }, 1000);
+    } catch(e) {
+        showToast('网络异常，请重试');
+        btn.disabled = false;
+    }
+}
+
+async function doLogin() {
+    const phone = document.getElementById('login-phone').value.trim();
+    const code = document.getElementById('login-code').value.trim();
+
+    if (!/^1[3-9]\d{9}$/.test(phone)) { showToast('请输入正确的手机号'); return; }
+    if (!code || code.length !== 6) { showToast('请输入6位验证码'); return; }
+
+    const btn = document.getElementById('login-btn');
+    btn.disabled = true;
+    btn.textContent = '登录中...';
+
+    try {
+        const resp = await fetch(API_BASE + '/auth/login', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ phone, code, device_id: DEVICE_ID })
+        });
+        const data = await resp.json();
+
+        if (!resp.ok) {
+            showToast(data.detail || '登录失败');
+            btn.disabled = false;
+            btn.textContent = '登录 / 注册';
+            return;
+        }
+
+        // 登录成功
+        AUTH_TOKEN = data.token;
+        localStorage.setItem('ai_auth_token', AUTH_TOKEN);
+
+        if (data.migrated) {
+            showToast('登录成功！设备积分已合并');
+        } else {
+            showToast('登录成功！');
+        }
+
+        closeLoginModal();
+
+        // 刷新用户信息和积分
+        await checkAuth();
+        await fetchCredits();
+    } catch(e) {
+        showToast('网络异常，请重试');
+        btn.disabled = false;
+        btn.textContent = '登录 / 注册';
+    }
+}
+
+async function doLogout() {
+    try {
+        await fetch(API_BASE + '/auth/logout', {
+            method: 'POST',
+            headers: authHeaders()
+        });
+    } catch(e) {}
+
+    AUTH_TOKEN = '';
+    AUTH_USER = null;
+    localStorage.removeItem('ai_auth_token');
+    updateProfileUI();
+    fetchCredits();
+    showToast('已退出登录');
+}
+
+// ===== 积分相关 =====
+let currentCredits = -1;
+
+async function fetchCredits() {
+    try {
+        const resp = await fetch(API_BASE + '/credits/' + DEVICE_ID, { headers: authHeaders() });
+        const data = await resp.json();
+        currentCredits = data.credits;
+        document.getElementById('credits-balance').textContent = data.credits.toLocaleString();
+        // Update nav badge
+        const badge = document.getElementById('nav-credits-badge');
+        if (badge) {
+            const display = data.credits < 100 ? data.credits.toString() : (data.credits >= 10000 ? (data.credits/10000).toFixed(1) + 'w' : data.credits.toLocaleString());
+            badge.textContent = display;
+            badge.style.display = '';
+        }
+        // Render credit logs
+        renderCreditLogs(data.recent_logs || []);
+        return data;
+    } catch (e) {
+        document.getElementById('credits-balance').textContent = '--';
+        return null;
+    }
+}
+
+function renderCreditLogs(logs) {
+    const container = document.getElementById('credit-logs');
+    if (!logs || !logs.length) {
+        container.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">暂无记录</p>';
+        return;
+    }
+    container.innerHTML = logs.slice(0, 10).map(log => {
+        const isPositive = log.amount > 0;
+        const typeLabel = {gift: '赠送', recharge: '充值', consume: '消耗'}[log.type] || log.type;
+        const typeColor = isPositive ? 'text-emerald-600' : 'text-slate-600';
+        const amountColor = isPositive ? 'text-emerald-600' : 'text-red-500';
+        const amountPrefix = isPositive ? '+' : '';
+        const time = log.created_at ? new Date(log.created_at).toLocaleString('zh-CN', {month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'}) : '';
+        return '<div class="flex items-center justify-between py-2 border-b border-slate-50">' +
+            '<div class="flex-1 min-w-0"><p class="text-xs text-slate-700 truncate">' + escapeHtml(log.description || typeLabel) + '</p><p class="text-[10px] text-slate-400">' + time + '</p></div>' +
+            '<span class="text-sm font-semibold ' + amountColor + ' ml-3">' + amountPrefix + log.amount + '</span></div>';
+    }).join('');
+}
+
+function refreshCredits() {
+    fetchCredits();
+    showToast('积分已刷新');
+}
+
+// Credits packages
+const CREDIT_PACKAGES = {
+    starter: { price: 9.9, credits: 30000, label: '体验包', desc: '30,000 积分' },
+    basic: { price: 29, credits: 90000, label: '基础包', desc: '90,000 积分' },
+    pro: { price: 99, credits: 300000, label: '进阶包', desc: '300,000 积分' },
+    ultimate: { price: 299, credits: 900000, label: '旗舰包', desc: '900,000 积分' },
+};
+
+function openCreditsModal() {
+    const container = document.getElementById('credits-packages');
+    container.innerHTML = Object.entries(CREDIT_PACKAGES).map(([key, pkg]) => {
+        const popular = key === 'pro';
+        return '<div onclick="purchasePackage(\''+key+'\')" class="flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all hover:shadow-md ' + (popular ? 'border-indigo-400 bg-indigo-50/30' : 'border-slate-100 hover:border-indigo-200') + '">' +
+            '<div><div class="flex items-center gap-2"><span class="font-semibold text-slate-800 text-sm">' + pkg.label + '</span>' + (popular ? '<span class="text-[10px] bg-indigo-500 text-white px-1.5 py-0.5 rounded-full">推荐</span>' : '') + '</div><p class="text-xs text-slate-400 mt-0.5">' + pkg.desc + '</p></div>' +
+            '<span class="text-lg font-bold text-indigo-600">¥' + pkg.price + '</span></div>';
+    }).join('');
+    document.getElementById('credits-modal').classList.add('active');
+}
+
+function closeCreditsModal() {
+    document.getElementById('credits-modal').classList.remove('active');
+}
+
+async function purchasePackage(packageKey) {
+    try {
+        const resp = await fetch(API_BASE + '/credits/recharge', {
+            method: 'POST',
+            headers: authHeaders(),
+            body: JSON.stringify({ user_id: DEVICE_ID, package: packageKey })
+        });
+        const data = await resp.json();
+        if (data.pay_url) {
+            // Open payment URL in new window
+            window.open(data.pay_url, '_blank');
+            closeCreditsModal();
+            showToast('已跳转支付页面，支付成功后积分将自动到账');
+            // Start polling for payment status
+            pollPaymentStatus(data.order_id);
+        } else {
+            showToast('创建订单失败，请重试');
+        }
+    } catch (e) {
+        showToast('支付请求失败');
+    }
+}
+
+async function pollPaymentStatus(orderId) {
+    let attempts = 0;
+    const poll = async () => {
+        if (attempts >= 60) return; // max 5 min
+        attempts++;
+        try {
+            const resp = await fetch(API_BASE + '/credits/check/' + orderId);
+            const data = await resp.json();
+            if (data.status === 'paid') {
+                showToast('充值成功！积分已到账');
+                fetchCredits();
+                return;
+            }
+        } catch (e) {}
+        setTimeout(poll, 5000);
+    };
+    setTimeout(poll, 5000);
+}
+
+function showInsufficientCredits(required, remaining) {
+    document.getElementById('insufficient-msg').textContent =
+        '当前积分 ' + (remaining || 0) + '，需要 ' + (required || 30) + ' 积分';
+    document.getElementById('insufficient-modal').classList.add('active');
+}
+
+function closeInsufficientModal() {
+    document.getElementById('insufficient-modal').classList.remove('active');
+}
+
+function init() {
+    renderSkillsGrid();
+    renderCustomSlots();
+    renderTaskList();
+    renderAgentsGrid();
+    loadSkillHistory();
+    updateUsageCount();
+    checkAuth(); // Check login state and update UI
+    fetchCredits(); // Load credits on init
+}
+
+function getAllAgents() { return [...DEFAULT_AGENTS, ...customAgents]; }
+function updateUsageCount() { document.getElementById('usage-count').textContent = taskHistory.length; }
+
+// ===== 技能渲染 =====
+function renderSkillsGrid() {
+    const grid = document.getElementById('skills-grid');
+    grid.innerHTML = PRESET_SKILLS.map(s => `
+        <div class="skill-card bg-white rounded-2xl border border-slate-100 p-4 cursor-pointer hover:shadow-lg hover:shadow-slate-100/80 hover:border-indigo-100/80 group relative overflow-hidden" onclick="openSkillDetail('${s.id}')">
+            <div class="absolute inset-0 bg-gradient-to-br ${s.color} opacity-0 group-hover:opacity-[0.03] transition-opacity"></div>
+            <div class="relative">
+                <div class="w-10 h-10 bg-gradient-to-br ${s.color} rounded-xl flex items-center justify-center text-white mb-3 shadow-sm group-hover:scale-110 group-hover:shadow-md transition-all">${s.icon}</div>
+                <h3 class="font-semibold text-slate-800 text-sm mb-0.5">${s.name}</h3>
+                <p class="text-[11px] text-slate-400 mb-3 leading-relaxed">${s.desc}</p>
+                <button class="w-full text-xs font-medium ${s.textColor} ${s.bgLight} hover:opacity-80 rounded-lg py-1.5 transition-all">使用</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderCustomSlots() {
+    document.getElementById('custom-slots').innerHTML = [0,1,2].map(i => `
+        <div class="skill-card rounded-2xl p-3 flex flex-col items-center justify-center aspect-square cursor-pointer border-2 border-dashed border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/30 transition-all" onclick="addCustomSlot(${i})">
+            <svg class="w-6 h-6 text-slate-300 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            <span class="text-[10px] text-slate-400">添加技能</span>
+        </div>
+    `).join('');
+}
+
+// ===== 智能体渲染 =====
+function renderAgentsGrid() {
+    const grid = document.getElementById('agents-grid');
+    const agents = getAllAgents();
+    document.getElementById('agent-count').textContent = agents.length + '个';
+
+    grid.innerHTML = agents.map(a => {
+        const msgs = agentChats[a.id] || [];
+        const lastUserMsg = [...msgs].reverse().find(m => m.role === 'user');
+        const lastPreview = lastUserMsg ? (lastUserMsg.content.length > 18 ? lastUserMsg.content.substring(0, 18) + '...' : lastUserMsg.content) : '';
+        const msgCount = msgs.filter(m => m.role === 'user').length;
+        return `
+        <div class="agent-card bg-white rounded-2xl border border-slate-100 p-3.5 cursor-pointer hover:shadow-lg hover:shadow-slate-100/80 hover:border-indigo-100/80 group relative overflow-hidden" onclick="openAgentChat('${a.id}')">
+            <div class="absolute inset-0 bg-gradient-to-br ${a.color} opacity-0 group-hover:opacity-[0.03] transition-opacity"></div>
+            <div class="relative">
+                <div class="flex items-start gap-2.5 mb-2.5">
+                    <div class="w-10 h-10 bg-gradient-to-br ${a.color} rounded-xl flex items-center justify-center text-lg shadow-sm group-hover:scale-105 transition-all">${a.icon}</div>
+                    <div class="flex-1 min-w-0 pt-0.5">
+                        <h3 class="font-semibold text-slate-800 text-sm truncate">${a.name}</h3>
+                        <p class="text-[10px] text-slate-400 truncate leading-tight">${a.role}</p>
+                    </div>
+                </div>
+                ${lastPreview ? `
+                <div class="bg-slate-50/80 rounded-lg px-2.5 py-1.5 mb-2">
+                    <p class="text-[11px] text-slate-500 truncate">💬 ${escapeHtml(lastPreview)}</p>
+                </div>` : `
+                <div class="bg-slate-50/50 rounded-lg px-2.5 py-1.5 mb-2">
+                    <p class="text-[11px] text-slate-400 italic">点击开始对话</p>
+                </div>`}
+                <div class="flex items-center justify-between">
+                    <span class="text-[10px] text-slate-300">${msgCount > 0 ? msgCount + '条对话' : '新对话'}</span>
+                    <svg class="w-3.5 h-3.5 text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </div>
+            </div>
+        </div>`;
+    }).join('') + `
+        <div class="agent-card rounded-2xl p-3.5 flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/30 transition-all group" onclick="openCreateAgent()" style="min-height: 130px;">
+            <div class="w-10 h-10 bg-slate-100 group-hover:bg-indigo-100 rounded-xl flex items-center justify-center mb-2 transition-colors">
+                <svg class="w-5 h-5 text-slate-400 group-hover:text-indigo-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            </div>
+            <span class="text-[11px] text-slate-400 group-hover:text-indigo-500 font-medium transition-colors">添加智能体</span>
+        </div>`;
+}
+
+// ===== 智能体对话 =====
+function openAgentChat(agentId) {
+    const agent = getAllAgents().find(a => a.id === agentId);
+    if (!agent) return;
+    currentAgentId = agentId;
+    document.getElementById('agent-chat-avatar').className = 'w-9 h-9 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0 bg-gradient-to-br ' + agent.color + ' text-white text-base';
+    document.getElementById('agent-chat-avatar').textContent = agent.icon;
+    document.getElementById('agent-chat-name').textContent = agent.name;
+    document.getElementById('agent-chat-role').textContent = agent.role;
+    renderAgentMessages(agent);
+    document.getElementById('agent-chat-view').style.display = 'flex';
+}
+
+function closeAgentChat() {
+    document.getElementById('agent-chat-view').style.display = 'none';
+    currentAgentId = null;
+    renderAgentsGrid();
+}
+
+function renderAgentMessages(agent) {
+    const container = document.getElementById('agent-chat-messages');
+    const msgs = agentChats[agent.id] || [];
+
+    if (msgs.length === 0) {
+        container.innerHTML = `
+            <div class="flex justify-start fade-in">
+                <div class="msg-bubble bg-white text-slate-700 rounded-2xl rounded-bl-md px-4 py-3 text-sm shadow-sm border border-slate-100 leading-relaxed">
+                    👋 ${agent.welcome}
+                </div>
+            </div>
+            <div class="flex flex-wrap gap-2 mt-2 fade-in">
+                ${getQuickPrompts(agent).map(p => `<button onclick="quickSendAgent('${escapeAttr(p)}')" class="text-xs bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-600 px-3 py-1.5 rounded-full hover:from-indigo-100 hover:to-purple-100 transition-all border border-indigo-100/50 active:scale-95">${p}</button>`).join('')}
+            </div>`;
+        return;
+    }
+
+    container.innerHTML = msgs.map(m => {
+        if (m.role === 'user') {
+            return `<div class="flex justify-end fade-in"><div class="msg-bubble bg-gradient-to-br from-indigo-500 to-indigo-600 text-white rounded-2xl rounded-br-md px-4 py-2.5 text-sm shadow-sm shadow-indigo-200/30 leading-relaxed">${m.content !== '[图片]' ? escapeHtml(m.content) : ''}${m.images ? getImagePreviewHTML(m.images) : ''}</div></div>`;
+        } else {
+            return `<div class="flex justify-start fade-in"><div class="msg-bubble bg-white text-slate-700 rounded-2xl rounded-bl-md px-4 py-3 text-sm shadow-sm border border-slate-100 leading-relaxed markdown-content">${formatMarkdown(m.content)}</div></div>`;
+        }
+    }).join('');
+    setTimeout(() => container.scrollTop = container.scrollHeight, 50);
+}
+
+function getQuickPrompts(agent) {
+    const prompts = {
+        general: ['帮我写一封邮件', '总结这个观点', '给些建议'],
+        doc_writer: ['写个工作汇报', '写项目方案', '润色这段文字'],
+        analyst: ['分析这组数据', '生成数据报表', '发现数据规律'],
+        creator: ['写小红书文案', '帮我起个标题', '写短视频脚本'],
+        coder: ['帮我写段代码', '这Bug怎么修？', '优化这段代码'],
+        translator: ['翻译成英文', '翻译成日文', '本地化这段文案']
+    };
+    return prompts[agent.id] || ['你好，帮我个忙', '你能做什么？', '开始工作吧'];
+}
+
+function quickSendAgent(text) {
+    document.getElementById('agent-chat-input').value = text;
+    sendAgentMessage();
+}
+
+// ===== 图片上传处理 =====
+function handleAgentImageUpload(event) {
+    const files = event.target.files;
+    if (!files || !files.length) return;
+    Array.from(files).forEach(file => {
+        if (file.size > 5 * 1024 * 1024) { showToast('图片不能超过5MB'); return; }
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            pendingImages.push({ dataUrl: e.target.result, name: file.name });
+            renderImagePreview();
+        };
+        reader.readAsDataURL(file);
+    });
+    event.target.value = '';
+}
+
+function renderImagePreview() {
+    const container = document.getElementById('agent-image-preview');
+    const list = document.getElementById('agent-image-list');
+    if (!pendingImages.length) { container.classList.add('hidden'); return; }
+    container.classList.remove('hidden');
+    list.innerHTML = pendingImages.map((img, i) => `
+        <div class="relative group">
+            <img src="${img.dataUrl}" class="w-14 h-14 rounded-xl object-cover border border-slate-200 shadow-sm" alt="${escapeAttr(img.name)}">
+            <button onclick="removePendingImage(${i})" class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full text-[10px] flex items-center justify-center shadow-sm hover:bg-red-600 transition-all">\u00d7</button>
+        </div>
+    `).join('');
+}
+
+function removePendingImage(index) { pendingImages.splice(index, 1); renderImagePreview(); }
+function clearPendingImages() { pendingImages = []; renderImagePreview(); }
+
+function getImagePreviewHTML(images) {
+    if (!images || !images.length) return '';
+    return '<div class="flex flex-wrap gap-1.5 mt-1.5">' + images.map(img =>
+        `<img src="${img.dataUrl}" class="w-20 h-20 rounded-lg object-cover border border-white/20 shadow-sm" alt="">`
+    ).join('') + '</div>';
+}
+
+async function sendAgentMessage() {
+    if (isSending) return;
+    const input = document.getElementById('agent-chat-input');
+    const msg = input.value.trim();
+    const images = [...pendingImages];
+    if ((!msg && !images.length) || !currentAgentId) return;
+    input.value = '';
+    input.style.height = 'auto';
+    clearPendingImages();
+
+    const agent = getAllAgents().find(a => a.id === currentAgentId);
+    if (!agentChats[currentAgentId]) agentChats[currentAgentId] = [];
+    const userMsg = { role: 'user', content: msg || '[图片]', time: Date.now() };
+    if (images.length) userMsg.images = images.map(i => i.dataUrl);
+    agentChats[currentAgentId].push(userMsg);
+    renderAgentMessages(agent);
+
+    isSending = true;
+    const sendBtn = document.getElementById('agent-send-btn');
+    sendBtn.disabled = true;
+    sendBtn.innerHTML = '<div class="flex gap-0.5"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>';
+
+    // Show typing indicator
+    const container = document.getElementById('agent-chat-messages');
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'flex justify-start fade-in typing-indicator';
+    typingDiv.innerHTML = '<div class="msg-bubble bg-white text-slate-400 rounded-2xl rounded-bl-md px-4 py-3 text-sm shadow-sm border border-slate-100"><div class="flex gap-1 items-center"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div></div>';
+    container.appendChild(typingDiv);
+    container.scrollTop = container.scrollHeight;
+
+    try {
+        // Call backend API
+        const history = agentChats[currentAgentId].slice(-20).map(m => ({ role: m.role, content: m.content }));
+        const imageUrls = images.map(i => i.dataUrl);
+        const resp = await fetch(API_BASE + '/agent-chat', {
+            method: 'POST',
+            headers: authHeaders(),
+            body: JSON.stringify({
+                role: agent.role,
+                custom_prompt: agent.customPrompt || '',
+                messages: history,
+                session_id: currentAgentId + '_' + Date.now(),
+                images: imageUrls,
+                user_id: DEVICE_ID
+            })
+        });
+        if (resp.status === 402) {
+            const errData = await resp.json();
+            const detail = errData.detail || {};
+            showInsufficientCredits(detail.required || 30, detail.remaining || 0);
+            agentChats[currentAgentId].pop(); // Remove the user message we just added
+            saveAgentChats();
+            renderAgentMessages(agent);
+        } else {
+            const data = await resp.json();
+            agentChats[currentAgentId].push({ role: 'assistant', content: data.reply || '回复为空', time: Date.now() });
+            // Update credits from response
+            if (data.remaining_credits >= 0) {
+                currentCredits = data.remaining_credits;
+                document.getElementById('credits-balance').textContent = data.remaining_credits.toLocaleString();
+                const badge = document.getElementById('nav-credits-badge');
+                if (badge) {
+                    const display = data.remaining_credits < 100 ? data.remaining_credits.toString() : (data.remaining_credits >= 10000 ? (data.remaining_credits/10000).toFixed(1) + 'w' : data.remaining_credits.toLocaleString());
+                    badge.textContent = display;
+                }
+                // Show low credits warning
+                if (data.remaining_credits < 30 && data.remaining_credits > 0) {
+                    showToast('积分余额不足，请及时充值');
+                }
+            }
+        }
+    } catch (e) {
+        agentChats[currentAgentId].push({ role: 'assistant', content: '抱歉，网络异常，请稍后重试。', time: Date.now() });
+    }
+
+    saveAgentChats();
+    isSending = false;
+    sendBtn.disabled = false;
+    sendBtn.innerHTML = '<svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>';
+    renderAgentMessages(agent);
+
+    taskHistory.push({ skillId: 'agent_' + agent.id, skillName: agent.name, input: msg, time: Date.now(), status: 'success' });
+    localStorage.setItem('ai_task_history', JSON.stringify(taskHistory));
+    updateUsageCount();
+}
+
+function saveAgentChats() { localStorage.setItem('ai_agent_chats', JSON.stringify(agentChats)); }
+
+function clearAgentChat() {
+    if (!currentAgentId) return;
+    agentChats[currentAgentId] = [];
+    saveAgentChats();
+    const agent = getAllAgents().find(a => a.id === currentAgentId);
+    renderAgentMessages(agent);
+    showToast('对话已清空');
+}
+
+// ===== 创建智能体 =====
+function openCreateAgent() {
+    selectedIcon = '🤖';
+    renderIconPicker();
+    document.getElementById('agent-name-input').value = '';
+    document.getElementById('agent-role-input').value = '';
+    document.getElementById('agent-prompt-input').value = '';
+    document.getElementById('create-agent-modal').classList.add('active');
+}
+function closeCreateAgent() { document.getElementById('create-agent-modal').classList.remove('active'); }
+
+function renderIconPicker() {
+    document.getElementById('icon-picker').innerHTML = AGENT_ICONS.map(icon =>
+        '<div class="icon-option ' + (icon === selectedIcon ? 'selected' : '') + '" onclick="selectIcon(\'' + icon + '\', this)">' + icon + '</div>'
+    ).join('');
+}
+function selectIcon(icon, el) {
+    selectedIcon = icon;
+    document.querySelectorAll('#icon-picker .icon-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+}
+
+function saveNewAgent() {
+    const name = document.getElementById('agent-name-input').value.trim();
+    const role = document.getElementById('agent-role-input').value.trim();
+    const prompt = document.getElementById('agent-prompt-input').value.trim();
+    if (!name) { showToast('请输入名称'); return; }
+    if (!role) { showToast('请输入角色分工'); return; }
+    customAgents.push({
+        id: 'custom_' + Date.now(), icon: selectedIcon, name, role,
+        color: AGENT_COLORS[customAgents.length % AGENT_COLORS.length],
+        welcome: '你好！我是' + name + '，' + role + '。' + (prompt ? '我的工作原则：' + prompt : '有什么需要帮忙的？'),
+        isPreset: false, customPrompt: prompt
+    });
+    localStorage.setItem('ai_custom_agents', JSON.stringify(customAgents));
+    closeCreateAgent();
+    renderAgentsGrid();
+    showToast('智能体「' + name + '」已创建');
+}
+
+// ===== 技能执行 =====
+function openSkillDetail(skillId) {
+    const skill = PRESET_SKILLS.find(s => s.id === skillId);
+    if (!skill) return;
+    currentSkillId = skillId;
+    document.getElementById('detail-header').innerHTML = `
+        <div class="w-8 h-8 bg-gradient-to-br ${skill.color} rounded-lg flex items-center justify-center text-white shadow-sm">${skill.icon}</div>
+        <div><h2 class="font-semibold text-slate-800 text-sm">${skill.name}</h2><p class="text-[10px] text-slate-400">${skill.desc}</p></div>
+    `;
+    const inputArea = document.getElementById('detail-input-area');
+    if (skill.inputType === 'textarea') {
+        const extraOpts = skill.id === 'doc_generator' ? '<div class="flex gap-2 mt-2"><select id="skill-format" class="border border-slate-200 rounded-lg px-3 py-1.5 text-xs bg-slate-50 focus:bg-white"><option value="md">Markdown</option><option value="docx">Word</option><option value="pdf">PDF</option></select><select id="skill-style" class="border border-slate-200 rounded-lg px-3 py-1.5 text-xs bg-slate-50 focus:bg-white"><option value="正式">正式</option><option value="简洁">简洁</option><option value="学术">学术</option><option value="商务">商务</option></select></div>' : '';
+        inputArea.innerHTML = '<textarea id="skill-input-text" rows="4" placeholder="' + skill.placeholder + '" class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm resize-none focus:border-indigo-400 transition-all bg-slate-50 focus:bg-white"></textarea>' + extraOpts;
+    } else if (skill.inputType === 'file') {
+        inputArea.innerHTML = `<div onclick="document.getElementById('skill-file-input').click()" id="skill-file-drop" class="border-2 border-dashed border-slate-200 rounded-xl p-6 text-center cursor-pointer hover:border-indigo-300 hover:bg-indigo-50/30 transition-all"><svg class="w-8 h-8 text-slate-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg><p class="text-sm text-slate-500">点击上传文件</p><p class="text-xs text-slate-400 mt-1">支持图片、PDF等格式</p><p id="skill-file-names" class="text-xs text-indigo-600 mt-2 hidden"></p></div><input type="file" id="skill-file-input" class="hidden" accept="image/*,.pdf" multiple onchange="onSkillFileSelected(this)">`;
+    } else {
+        inputArea.innerHTML = `<div onclick="document.getElementById('skill-file-input').click()" class="border-2 border-dashed border-slate-200 rounded-xl p-4 text-center cursor-pointer hover:border-indigo-300 hover:bg-indigo-50/30 transition-all"><p class="text-sm text-slate-500">📎 点击上传文件（可选）</p><p id="skill-file-names" class="text-xs text-indigo-600 mt-1 hidden"></p></div><input type="file" id="skill-file-input" class="hidden" accept="image/*,.pdf,.xlsx,.xls,.csv,.docx" multiple onchange="onSkillFileSelected(this)"><textarea id="skill-input-text" rows="3" placeholder="${skill.placeholder}" class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm resize-none focus:border-indigo-400 transition-all bg-slate-50 focus:bg-white"></textarea>`;
+    }
+    document.getElementById('detail-result-area').classList.add('hidden');
+    renderDetailHistory(skillId);
+    document.getElementById('skill-detail').classList.add('active');
+}
+function closeSkillDetail() { document.getElementById('skill-detail').classList.remove('active'); currentSkillId = null; }
+
+function onSkillFileSelected(input) {
+    const namesEl = document.getElementById('skill-file-names');
+    if (input.files && input.files.length > 0) {
+        const names = Array.from(input.files).map(f => f.name).join(', ');
+        if (namesEl) {
+            namesEl.textContent = '已选择: ' + names;
+            namesEl.classList.remove('hidden');
+        }
+    } else {
+        if (namesEl) namesEl.classList.add('hidden');
+    }
+}
+
+async function executeSkill() {
+    if (!currentSkillId) return;
+    const skill = PRESET_SKILLS.find(s => s.id === currentSkillId);
+    const btn = document.getElementById('detail-exec-btn');
+    const textInput = document.getElementById('skill-input-text');
+    const fileInput = document.getElementById('skill-file-input');
+    const inputText = textInput ? textInput.value.trim() : '';
+    const hasFiles = fileInput && fileInput.files && fileInput.files.length > 0;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="inline-flex items-center gap-1.5"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></span> 处理中...';
+
+    try {
+        let resp;
+        if (hasFiles) {
+            // 文件上传：使用FormData
+            const formData = new FormData();
+            formData.append('text', inputText || skill.desc);
+            formData.append('user_id', DEVICE_ID);
+            const formatSel = document.getElementById('skill-format');
+            const styleSel = document.getElementById('skill-style');
+            if (formatSel) formData.append('format', formatSel.value);
+            if (styleSel) formData.append('style', styleSel.value);
+            for (let i = 0; i < fileInput.files.length; i++) {
+                formData.append('files', fileInput.files[i]);
+            }
+            const headers = {};
+            if (AUTH_TOKEN) headers['Authorization'] = 'Bearer ' + AUTH_TOKEN;
+            resp = await fetch(API_BASE + '/skills/' + skill.id + '/execute', {
+                method: 'POST',
+                headers: headers,
+                body: formData
+            });
+        } else {
+            // 无文件：使用JSON
+            resp = await fetch(API_BASE + '/skills/' + skill.id + '/execute', {
+                method: 'POST',
+                headers: authHeaders(),
+                body: JSON.stringify({ 
+                text: inputText || skill.desc, 
+                user_id: DEVICE_ID,
+                format: document.getElementById('skill-format')?.value || undefined,
+                style: document.getElementById('skill-style')?.value || undefined
+            })
+            });
+        }
+        if (resp.status === 402) {
+            const errData = await resp.json();
+            const detail = errData.detail || {};
+            showInsufficientCredits(detail.required || 20, detail.remaining || 0);
+        } else {
+            const data = await resp.json();
+            document.getElementById('detail-result-area').classList.remove('hidden');
+            document.getElementById('detail-result').innerHTML = formatSkillResult(data);
+            // Update credits from response
+            if (data.remaining_credits >= 0) {
+                currentCredits = data.remaining_credits;
+                const badge = document.getElementById('nav-credits-badge');
+                if (badge) {
+                    const display = data.remaining_credits < 100 ? data.remaining_credits.toString() : (data.remaining_credits >= 10000 ? (data.remaining_credits/10000).toFixed(1) + 'w' : data.remaining_credits.toLocaleString());
+                    badge.textContent = display;
+                }
+            }
+        }
+    } catch (e) {
+        document.getElementById('detail-result-area').classList.remove('hidden');
+        document.getElementById('detail-result').innerHTML = '<p class="text-red-500 text-sm">执行失败，请稍后重试</p>';
+    }
+
+    btn.disabled = false;
+    btn.textContent = '开始执行';
+    taskHistory.push({ skillId: skill.id, skillName: skill.name, input: inputText || '文件处理', time: Date.now(), status: 'success' });
+    localStorage.setItem('ai_task_history', JSON.stringify(taskHistory));
+    updateUsageCount();
+    if (!skillHistory[skill.id]) skillHistory[skill.id] = [];
+    skillHistory[skill.id].push({ input: inputText || '文件处理', time: Date.now() });
+    localStorage.setItem('ai_skill_history', JSON.stringify(skillHistory));
+    renderDetailHistory(skill.id);
+}
+
+function formatSkillResult(data) {
+    if (data.error) return '<p class="text-red-500 text-sm">' + escapeHtml(data.error) + '</p>';
+    // 优先使用content字段（各skill handler返回的格式化内容）
+    if (data.output && typeof data.output === 'object') {
+        const out = data.output;
+        if (out.error) return '<p class="text-red-500 text-sm">' + escapeHtml(out.error) + '</p>';
+        if (out.content) return '<div class="markdown-content">' + formatMarkdown(out.content) + '</div>';
+        if (out.message) return '<div class="markdown-content"><p class="text-slate-600">' + formatMarkdown(out.message) + '</p></div>';
+        if (out.file_url) return '<div class="markdown-content"><p class="text-green-600 font-medium mb-2">✅ 处理完成</p><p class="text-sm"><a href="' + out.file_url + '" target="_blank" class="text-indigo-600 underline">📥 下载结果文件</a></p>' + (out.info ? '<p class="text-xs text-slate-500 mt-1">' + escapeHtml(out.info) + '</p>' : '') + '</div>';
+        if (out.text) return '<div class="markdown-content">' + formatMarkdown(out.text) + '</div>';
+        if (out.data) return '<div class="markdown-content"><pre class="text-xs bg-slate-50 p-3 rounded-lg overflow-auto">' + escapeHtml(JSON.stringify(out.data, null, 2)) + '</pre></div>';
+        return '<div class="markdown-content"><p class="text-green-600 font-medium mb-2">✅ 执行成功</p><pre class="text-xs bg-slate-50 p-3 rounded-lg overflow-auto">' + escapeHtml(JSON.stringify(out, null, 2)) + '</pre></div>';
+    }
+    if (data.result) return '<div class="markdown-content">' + formatMarkdown(typeof data.result === 'string' ? data.result : JSON.stringify(data.result, null, 2)) + '</div>';
+    if (data.output) return '<div class="markdown-content">' + formatMarkdown(data.output) + '</div>';
+    return '<div class="markdown-content"><p class="text-green-600 font-medium mb-2">✅ 执行成功</p><pre class="text-xs bg-slate-50 p-3 rounded-lg overflow-auto">' + escapeHtml(JSON.stringify(data, null, 2)) + '</pre></div>';
+}
+
+function renderDetailHistory(skillId) {
+    const area = document.getElementById('detail-history');
+    const list = document.getElementById('detail-history-list');
+    const records = skillHistory[skillId] || [];
+    if (!records.length) { area.classList.add('hidden'); return; }
+    area.classList.remove('hidden');
+    list.innerHTML = records.slice(-5).reverse().map(r => `
+        <div class="bg-slate-50 rounded-lg p-3 border border-slate-100">
+            <p class="text-xs text-slate-600 mb-1 truncate">${r.input || '文件处理'}</p>
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] text-green-600">✓ 完成</span>
+                <span class="text-[10px] text-slate-400">${formatTime(r.time)}</span>
+            </div>
+        </div>`).join('');
+}
+
+// ===== 任务列表 =====
+function renderTaskList() {
+    const list = document.getElementById('task-list');
+    const empty = document.getElementById('task-empty');
+    if (!taskHistory.length) { list.innerHTML = ''; list.appendChild(empty); empty.style.display = ''; return; }
+    empty.style.display = 'none';
+    list.innerHTML = taskHistory.slice().reverse().map(t => {
+        const skill = PRESET_SKILLS.find(s => s.id === t.skillId);
+        const agent = getAllAgents().find(a => 'agent_' + a.id === t.skillId);
+        const icon = skill ? skill.icon : (agent ? '<span class="text-sm">' + agent.icon + '</span>' : '⚡');
+        return `<div class="bg-white rounded-xl border border-slate-100 p-3 fade-in hover:shadow-sm transition-shadow">
+            <div class="flex items-center gap-2 mb-1">
+                <span class="w-6 h-6 flex items-center justify-center">${icon}</span>
+                <span class="text-sm font-medium text-slate-700">${t.skillName}</span>
+                <span class="ml-auto text-[10px] text-slate-400">${formatTime(t.time)}</span>
+            </div>
+            <p class="text-xs text-slate-500 line-clamp-2 pl-8">${escapeHtml(t.input || '自动匹配任务')}</p>
+        </div>`;
+    }).join('');
+}
+
+// ===== 工具 =====
+function loadSkillHistory() { try { skillHistory = JSON.parse(localStorage.getItem('ai_skill_history') || '{}'); } catch(e) { skillHistory = {}; } }
+function navigateTo(tab) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + tab).classList.add('active');
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    if (tab === 'tasks') renderTaskList();
+    if (tab === 'agents') renderAgentsGrid();
+    if (tab === 'profile') fetchCredits();
+}
+function addCustomSlot(i) { showToast('自定义技能功能即将上线'); }
+function escapeHtml(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+function escapeAttr(t) { return t.replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
+function formatTime(ts) {
+    const d = new Date(ts); const now = new Date();
+    if (d.toDateString() === now.toDateString()) return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+    return (d.getMonth()+1) + '/' + d.getDate();
+}
+function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.style.opacity = '1'; setTimeout(() => t.style.opacity = '0', 2000); }
+function clearTasks() { taskHistory = []; localStorage.setItem('ai_task_history', '[]'); renderTaskList(); updateUsageCount(); showToast('已清空'); }
+
+// Simple markdown formatter
+function formatMarkdown(text) {
+    if (!text) return '';
+    let html = escapeHtml(text);
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+    html = html.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+    html = html.replace(/^### (.*$)/gm, '<h3>$1</h3>');
+    html = html.replace(/^## (.*$)/gm, '<h2>$1</h2>');
+    html = html.replace(/^# (.*$)/gm, '<h1>$1</h1>');
+    html = html.replace(/\n/g, '<br>');
+    return html;
+}
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+init();
+</script>
+</body>
+</html>

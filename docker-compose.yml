@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  ai-staff:
+    build: .
+    container_name: ai-staff
+    ports:
+      - "8002:8000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - TZ=Asia/Shanghai
+    restart: unless-stopped

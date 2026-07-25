@@ -1,0 +1,24 @@
+{
+  "name": "ai-staff",
+  "version": "1.0.0",
+  "description": "AI智能客服 - 轻量级对话式AI客服系统",
+  "scripts": {
+    "build": "echo 'No build step needed'",
+    "cap:init": "npx cap init 'AI智能客服' com.zhinenti.aistaff --web-dir=frontend",
+    "cap:add:android": "npx cap add android",
+    "cap:add:ios": "npx cap add ios",
+    "cap:sync": "npx cap sync",
+    "cap:open:android": "npx cap open android",
+    "cap:open:ios": "npx cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/core": "^6.0.0",
+    "@capacitor/app": "^6.0.0",
+    "@capacitor/status-bar": "^6.0.0",
+    "@capacitor/splash-screen": "^6.0.0",
+    "@capacitor/keyboard": "^6.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.0.0"
+  }
+}
