@@ -261,6 +261,190 @@
         </div>
     </div>
 
+
+    <!-- Page: 营销 -->
+    <div id="page-marketing" class="page h-full" style="padding-bottom: 80px;">
+        <div class="flex items-center justify-between px-5 py-3.5 bg-white/95 backdrop-blur-md border-b border-slate-100/80 sticky top-0 z-10">
+            <h1 class="text-base font-bold text-slate-800">AI 营销</h1>
+            <div class="flex gap-1">
+                <button onclick="switchMarketingTab('copy')" id="mkt-tab-copy" class="mkt-tab-btn px-2.5 py-1 rounded-lg text-[10px] font-medium bg-purple-100 text-purple-700 transition-all">文案</button>
+                <button onclick="switchMarketingTab('generate')" id="mkt-tab-generate" class="mkt-tab-btn px-2.5 py-1 rounded-lg text-[10px] font-medium text-slate-500 hover:bg-slate-100 transition-all">批量</button>
+                <button onclick="switchMarketingTab('publish')" id="mkt-tab-publish" class="mkt-tab-btn px-2.5 py-1 rounded-lg text-[10px] font-medium text-slate-500 hover:bg-slate-100 transition-all">发布</button>
+                <button onclick="switchMarketingTab('workflow')" id="mkt-tab-workflow" class="mkt-tab-btn px-2.5 py-1 rounded-lg text-[10px] font-medium text-slate-500 hover:bg-slate-100 transition-all">工作流</button>
+            </div>
+        </div>
+
+        <!-- 营销子页面: 文案生成 -->
+        <div id="mkt-page-copy" class="mkt-page flex-1 flex flex-col overflow-hidden">
+            <div id="mkt-copy-chat" class="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+                <div class="flex gap-2.5 max-w-md">
+                    <div class="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center text-white text-xs flex-shrink-0">🤖</div>
+                    <div class="bg-white rounded-2xl rounded-tl-sm px-3 py-2.5 shadow-sm border border-gray-100">
+                        <p class="text-xs text-gray-700">你好！我是 AI 文案助手 ✨</p>
+                        <p class="text-[11px] text-gray-500 mt-0.5">选择目标平台，输入产品信息，我来帮你生成专业推广文案。</p>
+                    </div>
+                </div>
+                <div id="mkt-copy-messages"></div>
+            </div>
+            <div class="border-t border-gray-200 bg-white px-3 py-2.5">
+                <div class="flex items-center gap-1.5 mb-2 overflow-x-auto pb-0.5" style="scrollbar-width:none">
+                    <span class="text-[10px] text-gray-400 flex-shrink-0">平台：</span>
+                    <button class="mkt-platform-chip flex-shrink-0 flex items-center gap-0.5 px-2 py-1 rounded-full border border-gray-200 text-[10px] font-medium text-gray-600 hover:border-purple-300 hover:text-purple-600 transition-all" data-platform="xiaohongshu" data-name="小红书" data-emoji="📕"><span>📕</span><span>小红书</span></button>
+                    <button class="mkt-platform-chip flex-shrink-0 flex items-center gap-0.5 px-2 py-1 rounded-full border border-gray-200 text-[10px] font-medium text-gray-600 hover:border-purple-300 hover:text-purple-600 transition-all" data-platform="zhihu" data-name="知乎" data-emoji="📘"><span>📘</span><span>知乎</span></button>
+                    <button class="mkt-platform-chip flex-shrink-0 flex items-center gap-0.5 px-2 py-1 rounded-full border border-gray-200 text-[10px] font-medium text-gray-600 hover:border-purple-300 hover:text-purple-600 transition-all" data-platform="wechat" data-name="公众号" data-emoji="💬"><span>💬</span><span>公众号</span></button>
+                    <button class="mkt-platform-chip flex-shrink-0 flex items-center gap-0.5 px-2 py-1 rounded-full border border-gray-200 text-[10px] font-medium text-gray-600 hover:border-purple-300 hover:text-purple-600 transition-all" data-platform="douyin" data-name="抖音" data-emoji="🎵"><span>🎵</span><span>抖音</span></button>
+                    <button class="mkt-platform-chip flex-shrink-0 flex items-center gap-0.5 px-2 py-1 rounded-full border border-gray-200 text-[10px] font-medium text-gray-600 hover:border-purple-300 hover:text-purple-600 transition-all" data-platform="bilibili" data-name="B站" data-emoji="📺"><span>📺</span><span>B站</span></button>
+                    <button class="mkt-platform-chip flex-shrink-0 flex items-center gap-0.5 px-2 py-1 rounded-full border border-gray-200 text-[10px] font-medium text-gray-600 hover:border-purple-300 hover:text-purple-600 transition-all" data-platform="weibo" data-name="微博" data-emoji="📢"><span>📢</span><span>微博</span></button>
+                    <button class="mkt-platform-chip flex-shrink-0 flex items-center gap-0.5 px-2 py-1 rounded-full border border-gray-200 text-[10px] font-medium text-gray-600 hover:border-purple-300 hover:text-purple-600 transition-all" data-platform="qywechat" data-name="企微" data-emoji="👥"><span>👥</span><span>企微</span></button>
+                    <button class="mkt-platform-chip flex-shrink-0 flex items-center gap-0.5 px-2 py-1 rounded-full border border-gray-200 text-[10px] font-medium text-gray-600 hover:border-purple-300 hover:text-purple-600 transition-all" data-platform="toutiao" data-name="头条" data-emoji="🔥"><span>🔥</span><span>头条</span></button>
+                    <button class="mkt-platform-chip flex-shrink-0 flex items-center gap-0.5 px-2 py-1 rounded-full border border-gray-200 text-[10px] font-medium text-gray-600 hover:border-purple-300 hover:text-purple-600 transition-all" data-platform="jike" data-name="即刻" data-emoji="📌"><span>📌</span><span>即刻</span></button>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <textarea id="mkt-product-input" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none" placeholder="输入产品名称、核心卖点、目标人群..."></textarea>
+                    <div class="flex gap-2 items-center">
+                        <input id="mkt-extra-input" type="text" class="flex-1 px-3 py-1.5 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="额外要求（选填）">
+                        <button id="mkt-generate-btn" onclick="mktGenerateCopy()" class="flex-shrink-0 px-4 py-1.5 rounded-xl text-white text-xs font-medium bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 transition-all disabled:opacity-60">✨ 生成</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 营销子页面: 批量推广 -->
+        <div id="mkt-page-generate" class="mkt-page flex-1 flex flex-col overflow-hidden hidden">
+            <div id="mkt-gen-chat" class="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+                <div class="flex gap-2.5 max-w-md">
+                    <div class="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center text-white text-xs flex-shrink-0">🤖</div>
+                    <div class="bg-white rounded-2xl rounded-tl-sm px-3 py-2.5 shadow-sm border border-gray-100">
+                        <p class="text-xs text-gray-700">批量推广生成 🚀</p>
+                        <p class="text-[11px] text-gray-500 mt-0.5">多平台同时生成文案、配图提示词和视频脚本。</p>
+                    </div>
+                </div>
+                <div id="mkt-gen-messages"></div>
+            </div>
+            <div class="border-t border-gray-200 bg-white px-3 py-2.5 max-h-[50vh] overflow-y-auto">
+                <textarea id="mkt-gen-product" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none mb-2" placeholder="输入产品名称、核心卖点、目标人群..."></textarea>
+                <div class="flex items-center justify-between mb-1">
+                    <span class="text-[10px] text-gray-500">选择平台</span>
+                    <div class="flex gap-1">
+                        <button onclick="mktSelectAllPlatforms(true)" class="text-[10px] text-purple-600 font-medium">全选</button>
+                        <span class="text-gray-300 text-[10px]">|</span>
+                        <button onclick="mktSelectAllPlatforms(false)" class="text-[10px] text-gray-500 font-medium">取消</button>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-1 mb-2">
+                    <label class="mkt-plat-tag flex items-center gap-0.5 px-2 py-1 rounded-full border border-gray-200 cursor-pointer text-[10px] has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50 has-[:checked]:text-purple-700"><input type="checkbox" value="xiaohongshu" class="mkt-gen-cb hidden" checked>📕 小红书</label>
+                    <label class="mkt-plat-tag flex items-center gap-0.5 px-2 py-1 rounded-full border border-gray-200 cursor-pointer text-[10px] has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50 has-[:checked]:text-purple-700"><input type="checkbox" value="zhihu" class="mkt-gen-cb hidden" checked>📘 知乎</label>
+                    <label class="mkt-plat-tag flex items-center gap-0.5 px-2 py-1 rounded-full border border-gray-200 cursor-pointer text-[10px] has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50 has-[:checked]:text-purple-700"><input type="checkbox" value="wechat" class="mkt-gen-cb hidden" checked>💬 公众号</label>
+                    <label class="mkt-plat-tag flex items-center gap-0.5 px-2 py-1 rounded-full border border-gray-200 cursor-pointer text-[10px] has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50 has-[:checked]:text-purple-700"><input type="checkbox" value="douyin" class="mkt-gen-cb hidden" checked>🎵 抖音</label>
+                    <label class="mkt-plat-tag flex items-center gap-0.5 px-2 py-1 rounded-full border border-gray-200 cursor-pointer text-[10px] has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50 has-[:checked]:text-purple-700"><input type="checkbox" value="bilibili" class="mkt-gen-cb hidden" checked>📺 B站</label>
+                    <label class="mkt-plat-tag flex items-center gap-0.5 px-2 py-1 rounded-full border border-gray-200 cursor-pointer text-[10px] has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50 has-[:checked]:text-purple-700"><input type="checkbox" value="weibo" class="mkt-gen-cb hidden" checked>📢 微博</label>
+                    <label class="mkt-plat-tag flex items-center gap-0.5 px-2 py-1 rounded-full border border-gray-200 cursor-pointer text-[10px] has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50 has-[:checked]:text-purple-700"><input type="checkbox" value="qywechat" class="mkt-gen-cb hidden">👥 企微</label>
+                    <label class="mkt-plat-tag flex items-center gap-0.5 px-2 py-1 rounded-full border border-gray-200 cursor-pointer text-[10px] has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50 has-[:checked]:text-purple-700"><input type="checkbox" value="toutiao" class="mkt-gen-cb hidden">🔥 头条</label>
+                    <label class="mkt-plat-tag flex items-center gap-0.5 px-2 py-1 rounded-full border border-gray-200 cursor-pointer text-[10px] has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50 has-[:checked]:text-purple-700"><input type="checkbox" value="jike" class="mkt-gen-cb hidden">📌 即刻</label>
+                </div>
+                <div class="flex flex-wrap gap-1.5 mb-2">
+                    <label class="flex items-center gap-1 px-2 py-1 rounded-full border border-gray-200 cursor-pointer text-[10px] has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50"><input type="checkbox" id="mkt-type-copy" class="hidden" checked>✍️ 文案</label>
+                    <label class="flex items-center gap-1 px-2 py-1 rounded-full border border-gray-200 cursor-pointer text-[10px] has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50"><input type="checkbox" id="mkt-type-image" class="hidden" checked>🎨 配图</label>
+                    <label class="flex items-center gap-1 px-2 py-1 rounded-full border border-gray-200 cursor-pointer text-[10px] has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50"><input type="checkbox" id="mkt-type-video" class="hidden">🎬 视频</label>
+                </div>
+                <div class="flex gap-2 items-center">
+                    <input id="mkt-gen-extra" type="text" class="flex-1 px-3 py-1.5 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="额外要求（选填）">
+                    <button onclick="mktGenerateBatch()" id="mkt-gen-btn" class="flex-shrink-0 px-4 py-1.5 rounded-xl text-white text-xs font-medium bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 transition-all disabled:opacity-60">🚀 生成</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 营销子页面: 发布管理 -->
+        <div id="mkt-page-publish" class="mkt-page flex-1 overflow-y-auto px-4 py-4 space-y-3 hidden">
+            <div class="flex gap-2.5 max-w-md mb-2">
+                <div class="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center text-white text-xs flex-shrink-0">📢</div>
+                <div class="bg-white rounded-2xl rounded-tl-sm px-3 py-2.5 shadow-sm border border-gray-100">
+                    <p class="text-xs text-gray-700">发布管理助手 📢</p>
+                    <p class="text-[11px] text-gray-500 mt-0.5">管理所有生成内容，可复制文案或跳转平台发布。</p>
+                </div>
+            </div>
+            <div id="mkt-publish-list" class="space-y-3"></div>
+            <div id="mkt-publish-empty" class="flex flex-col items-center justify-center py-10 text-gray-400">
+                <div class="text-4xl mb-2">📭</div>
+                <p class="text-sm font-medium">还没有生成的内容</p>
+                <p class="text-xs mt-1">去文案生成或批量推广创建内容吧</p>
+            </div>
+        </div>
+
+        <!-- 营销子页面: 工作流 -->
+        <div id="mkt-page-workflow" class="mkt-page flex-1 overflow-y-auto px-4 py-4 hidden">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-sm font-semibold text-gray-800">自动化工作流</h3>
+                <button onclick="openWfModal()" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-medium hover:from-purple-700 hover:to-indigo-700 transition-all">+ 添加项目</button>
+            </div>
+            <p class="text-[11px] text-gray-500 mb-3">配置项目后，点击「立即生成」自动创建推广内容并保存到发布管理。</p>
+            <div id="mkt-wf-list" class="space-y-3"></div>
+            <div id="mkt-wf-empty" class="flex flex-col items-center justify-center py-10 text-gray-400">
+                <div class="text-4xl mb-2">📋</div>
+                <p class="text-sm font-medium">还没有配置工作流</p>
+                <p class="text-xs mt-1 mb-4">添加项目后，系统会自动生成推广内容</p>
+                <button onclick="openWfModal()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-medium">+ 添加第一个项目</button>
+            </div>
+
+            <!-- 工作流编辑弹窗 -->
+            <div id="mkt-wf-modal" class="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4 hidden">
+                <div class="bg-white rounded-2xl p-5 max-w-[480px] w-full shadow-2xl max-h-[85vh] overflow-y-auto">
+                    <h3 id="mkt-wf-modal-title" class="text-base font-bold text-gray-900 mb-4">添加项目</h3>
+                    <input type="hidden" id="mkt-wf-edit-id" value="">
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-1">产品名称 *</label>
+                            <input id="mkt-wf-product" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="例：AI智能客服系统">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-1">产品描述 *</label>
+                            <textarea id="mkt-wf-desc" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none" placeholder="核心卖点、目标人群等"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-1">额外要求</label>
+                            <input id="mkt-wf-extra" type="text" class="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="风格、字数等（选填）">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-1">目标平台</label>
+                            <div class="grid grid-cols-3 gap-1.5">
+                                <label class="flex items-center gap-1 p-1.5 rounded-lg border border-gray-200 cursor-pointer text-[10px] has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50"><input type="checkbox" value="xiaohongshu" class="mkt-wf-plat-cb w-3 h-3" checked>📕 小红书</label>
+                                <label class="flex items-center gap-1 p-1.5 rounded-lg border border-gray-200 cursor-pointer text-[10px] has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50"><input type="checkbox" value="zhihu" class="mkt-wf-plat-cb w-3 h-3" checked>📘 知乎</label>
+                                <label class="flex items-center gap-1 p-1.5 rounded-lg border border-gray-200 cursor-pointer text-[10px] has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50"><input type="checkbox" value="wechat" class="mkt-wf-plat-cb w-3 h-3" checked>💬 公众号</label>
+                                <label class="flex items-center gap-1 p-1.5 rounded-lg border border-gray-200 cursor-pointer text-[10px] has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50"><input type="checkbox" value="douyin" class="mkt-wf-plat-cb w-3 h-3" checked>🎵 抖音</label>
+                                <label class="flex items-center gap-1 p-1.5 rounded-lg border border-gray-200 cursor-pointer text-[10px] has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50"><input type="checkbox" value="bilibili" class="mkt-wf-plat-cb w-3 h-3" checked>📺 B站</label>
+                                <label class="flex items-center gap-1 p-1.5 rounded-lg border border-gray-200 cursor-pointer text-[10px] has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50"><input type="checkbox" value="weibo" class="mkt-wf-plat-cb w-3 h-3" checked>📢 微博</label>
+                                <label class="flex items-center gap-1 p-1.5 rounded-lg border border-gray-200 cursor-pointer text-[10px] has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50"><input type="checkbox" value="qywechat" class="mkt-wf-plat-cb w-3 h-3">👥 企微</label>
+                                <label class="flex items-center gap-1 p-1.5 rounded-lg border border-gray-200 cursor-pointer text-[10px] has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50"><input type="checkbox" value="toutiao" class="mkt-wf-plat-cb w-3 h-3">🔥 头条</label>
+                                <label class="flex items-center gap-1 p-1.5 rounded-lg border border-gray-200 cursor-pointer text-[10px] has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50"><input type="checkbox" value="jike" class="mkt-wf-plat-cb w-3 h-3">📌 即刻</label>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-1">生成内容</label>
+                            <div class="flex gap-2">
+                                <label class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-gray-200 cursor-pointer text-[10px] has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50"><input type="checkbox" id="mkt-wf-type-copy" class="hidden" checked>✍️ 文案</label>
+                                <label class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-gray-200 cursor-pointer text-[10px] has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50"><input type="checkbox" id="mkt-wf-type-image" class="hidden" checked>🎨 配图</label>
+                                <label class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-gray-200 cursor-pointer text-[10px] has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50"><input type="checkbox" id="mkt-wf-type-video" class="hidden">🎬 视频</label>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-1">生成频率</label>
+                            <div class="flex gap-2">
+                                <label class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-gray-200 cursor-pointer text-[10px] has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50"><input type="radio" name="mkt-wf-freq" value="daily" class="mkt-wf-freq-radio hidden" checked>每天</label>
+                                <label class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-gray-200 cursor-pointer text-[10px] has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50"><input type="radio" name="mkt-wf-freq" value="2days" class="mkt-wf-freq-radio hidden">每2天</label>
+                                <label class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-gray-200 cursor-pointer text-[10px] has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50"><input type="radio" name="mkt-wf-freq" value="weekly" class="mkt-wf-freq-radio hidden">每周</label>
+                                <label class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-gray-200 cursor-pointer text-[10px] has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50"><input type="radio" name="mkt-wf-freq" value="manual" class="mkt-wf-freq-radio hidden">手动</label>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 pt-2">
+                            <button onclick="closeWfModal()" class="flex-1 py-2 rounded-xl border border-gray-200 text-gray-500 text-xs cursor-pointer bg-transparent">取消</button>
+                            <button onclick="saveWfItem()" class="flex-1 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-medium">保存</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Skill Detail Page -->
     <div id="skill-detail" class="skill-detail-page">
         <div class="flex items-center px-4 py-3 bg-white/95 backdrop-blur-md border-b border-slate-100/80">
@@ -388,6 +572,12 @@
                 <svg class="w-4.5 h-4.5 text-current" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
             </span>
             <span class="text-[10px] font-medium">任务</span>
+        </button>
+        <button onclick="navigateTo('marketing')" class="tab-btn flex flex-col items-center gap-0.5 px-5 py-1.5 rounded-xl" data-tab="marketing">
+            <span class="tab-icon w-7 h-7 rounded-lg flex items-center justify-center">
+                <svg class="w-4.5 h-4.5 text-current" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+            </span>
+            <span class="text-[10px] font-medium">营销</span>
         </button>
         <button onclick="navigateTo('profile')" class="tab-btn flex flex-col items-center gap-0.5 px-5 py-1.5 rounded-xl" data-tab="profile">
             <span class="tab-icon w-7 h-7 rounded-lg flex items-center justify-center">
@@ -1303,6 +1493,7 @@ function navigateTo(tab) {
     if (tab === 'tasks') renderTaskList();
     if (tab === 'agents') renderAgentsGrid();
     if (tab === 'profile') fetchCredits();
+    if (tab === 'marketing') { renderMktPublish(); renderWfList(); }
 }
 function addCustomSlot(i) { showToast('自定义技能功能即将上线'); }
 function escapeHtml(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
@@ -1329,6 +1520,635 @@ function formatMarkdown(text) {
     html = html.replace(/\n/g, '<br>');
     return html;
 }
+
+
+// ===== 营销平台配置 =====
+const MKT_PLATFORMS = {
+    xiaohongshu: { name: '小红书', emoji: '📕' },
+    zhihu: { name: '知乎', emoji: '📘' },
+    wechat: { name: '微信公众号', emoji: '💬' },
+    douyin: { name: '抖音', emoji: '🎵' },
+    bilibili: { name: '哔哩哔哩', emoji: '📺' },
+    weibo: { name: '微博', emoji: '📢' },
+    qywechat: { name: '企业微信', emoji: '👥' },
+    toutiao: { name: '头条号', emoji: '🔥' },
+    jike: { name: '即刻', emoji: '📌' },
+};
+const MKT_PUBLISH_LINKS = {
+    xiaohongshu: 'https://creator.xiaohongshu.com/publish/publish',
+    zhihu: 'https://www.zhihu.com/creator',
+    wechat: 'https://mp.weixin.qq.com/',
+    douyin: 'https://creator.douyin.com/creator-micro/content/upload',
+    bilibili: 'https://member.bilibili.com/platform/upload/text',
+    weibo: 'https://weibo.com',
+    toutiao: 'https://mp.toutiao.com/',
+    jike: 'https://web.okjike.com/',
+    qywechat: 'https://work.weixin.qq.com/'
+};
+
+let mktSelectedPlatform = '';
+let mktLastProduct = '';
+let mktLastExtra = '';
+
+// ===== 营销 Tab 切换 =====
+function switchMarketingTab(tab) {
+    document.querySelectorAll('.mkt-page').forEach(p => p.classList.add('hidden'));
+    document.getElementById('mkt-page-' + tab).classList.remove('hidden');
+    document.querySelectorAll('.mkt-tab-btn').forEach(b => {
+        b.classList.remove('bg-purple-100', 'text-purple-700');
+        b.classList.add('text-slate-500');
+    });
+    const btn = document.getElementById('mkt-tab-' + tab);
+    btn.classList.add('bg-purple-100', 'text-purple-700');
+    btn.classList.remove('text-slate-500');
+    if (tab === 'publish') renderMktPublish();
+    if (tab === 'workflow') renderWfList();
+}
+
+// ===== 平台选择(文案生成) =====
+document.querySelectorAll('.mkt-platform-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+        document.querySelectorAll('.mkt-platform-chip').forEach(c => {
+            c.classList.remove('border-purple-500', 'bg-purple-50', 'text-purple-700');
+            c.classList.add('border-gray-200', 'text-gray-600');
+        });
+        chip.classList.add('border-purple-500', 'bg-purple-50', 'text-purple-700');
+        chip.classList.remove('border-gray-200', 'text-gray-600');
+        mktSelectedPlatform = chip.dataset.platform;
+    });
+});
+
+// ===== 批量推广 全选/取消 =====
+function mktSelectAllPlatforms(val) {
+    document.querySelectorAll('.mkt-gen-cb').forEach(cb => cb.checked = val);
+}
+
+// ===== 文案生成 =====
+async function mktGenerateCopy() {
+    if (!mktSelectedPlatform) { showToast('请先选择平台'); return; }
+    const product = document.getElementById('mkt-product-input').value.trim();
+    if (!product) { showToast('请输入产品信息'); return; }
+    const extra = document.getElementById('mkt-extra-input').value.trim();
+    mktLastProduct = product;
+    mktLastExtra = extra;
+
+    const pInfo = MKT_PLATFORMS[mktSelectedPlatform] || { name: mktSelectedPlatform, emoji: '📄' };
+
+    // 添加用户消息
+    const mc = document.getElementById('mkt-copy-messages');
+    const userDiv = document.createElement('div');
+    userDiv.className = 'flex gap-2.5 max-w-md ml-auto flex-row-reverse';
+    userDiv.innerHTML = '<div class="w-7 h-7 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center text-white text-xs flex-shrink-0">👤</div>' +
+        '<div class="bg-purple-50 rounded-2xl rounded-tr-sm px-3 py-2 border border-purple-100">' +
+        '<p class="text-[10px] text-purple-400 mb-0.5">📌 ' + pInfo.emoji + ' ' + pInfo.name + '</p>' +
+        '<p class="text-xs text-gray-800">' + escapeHtml(product) + '</p>' +
+        (extra ? '<p class="text-[10px] text-gray-500 mt-0.5">💡 ' + escapeHtml(extra) + '</p>' : '') +
+        '</div>';
+    mc.appendChild(userDiv);
+
+    // 清空输入
+    document.getElementById('mkt-product-input').value = '';
+    document.getElementById('mkt-extra-input').value = '';
+
+    // 加载指示
+    const btn = document.getElementById('mkt-generate-btn');
+    btn.disabled = true;
+    btn.innerHTML = '⏳ 生成中';
+
+    const typingDiv = document.createElement('div');
+    typingDiv.id = 'mkt-typing';
+    typingDiv.className = 'flex gap-2.5 max-w-md';
+    typingDiv.innerHTML = '<div class="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center text-white text-xs flex-shrink-0">🤖</div>' +
+        '<div class="bg-white rounded-2xl rounded-tl-sm px-3 py-2.5 shadow-sm border border-gray-100">' +
+        '<p class="text-xs text-gray-400"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span> 正在生成文案...</p></div>';
+    mc.appendChild(typingDiv);
+
+    const chatArea = document.getElementById('mkt-copy-chat');
+    chatArea.scrollTop = chatArea.scrollHeight;
+
+    try {
+        const res = await fetch(API_BASE + '/marketing/generate', {
+            method: 'POST',
+            headers: authHeaders(),
+            body: JSON.stringify({ type: 'copy', product, platforms: [mktSelectedPlatform], extra }),
+        });
+        const data = await res.json();
+        typingDiv.remove();
+
+        if (data.success && data.results && data.results.copy && data.results.copy.length > 0) {
+            const result = data.results.copy[0];
+            const msgId = 'mkt-result-' + Date.now();
+            const resultDiv = document.createElement('div');
+            resultDiv.className = 'flex gap-2.5 max-w-lg';
+            resultDiv.innerHTML = '<div class="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center text-white text-xs flex-shrink-0">🤖</div>' +
+                '<div class="bg-white rounded-2xl rounded-tl-sm px-3 py-2.5 shadow-sm border border-gray-100 flex-1 min-w-0">' +
+                '<p class="text-[10px] text-gray-500 mb-1">' + pInfo.emoji + ' ' + pInfo.name + ' · ' + new Date().toLocaleDateString('zh-CN') + '</p>' +
+                '<div id="' + msgId + '" class="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap bg-gray-50 rounded-lg p-2 overflow-y-auto mb-2" style="max-height:300px">' + escapeHtml(result.content) + '</div>' +
+                '<div class="flex gap-1.5 flex-wrap">' +
+                '<button class="px-2 py-1 rounded-lg border border-purple-200 text-purple-600 text-[10px] font-medium" onclick="mktCopyText(\'' + msgId + '\', this)">📋 复制</button>' +
+                '<button class="px-2 py-1 rounded-lg border border-gray-200 text-gray-600 text-[10px] font-medium" onclick="mktGenerateCopy()">🔄 重新生成</button>' +
+                '<button class="px-2 py-1 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 text-white text-[10px] font-medium" onclick="switchMarketingTab(\'generate\')">🚀 批量推广</button>' +
+                '</div></div>';
+            mc.appendChild(resultDiv);
+
+            // 保存到历史
+            mktSaveHistory({
+                id: Date.now().toString(),
+                date: new Date().toISOString().slice(0, 10),
+                product: product,
+                platforms: [mktSelectedPlatform],
+                copy: [result],
+                image: '',
+                video: '',
+            });
+        } else {
+            const errDiv = document.createElement('div');
+            errDiv.className = 'flex gap-2.5 max-w-md';
+            errDiv.innerHTML = '<div class="w-7 h-7 rounded-full bg-red-100 flex items-center justify-center text-red-500 text-xs flex-shrink-0">😢</div>' +
+                '<div class="bg-red-50 rounded-2xl rounded-tl-sm px-3 py-2.5 border border-red-100">' +
+                '<p class="text-xs text-red-600">' + escapeHtml(data.error || data.detail || '生成失败') + '</p></div>';
+            mc.appendChild(errDiv);
+        }
+    } catch (e) {
+        typingDiv.remove();
+        const errDiv = document.createElement('div');
+        errDiv.className = 'flex gap-2.5 max-w-md';
+        errDiv.innerHTML = '<div class="w-7 h-7 rounded-full bg-red-100 flex items-center justify-center text-red-500 text-xs flex-shrink-0">😢</div>' +
+            '<div class="bg-red-50 rounded-2xl rounded-tl-sm px-3 py-2.5 border border-red-100">' +
+            '<p class="text-xs text-red-600">网络错误，请重试</p></div>';
+        mc.appendChild(errDiv);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '✨ 生成';
+        chatArea.scrollTop = chatArea.scrollHeight;
+    }
+}
+
+function mktCopyText(elId, btnEl) {
+    const el = document.getElementById(elId);
+    if (el) {
+        navigator.clipboard.writeText(el.textContent).then(() => {
+            const orig = btnEl.innerHTML;
+            btnEl.innerHTML = '✅ 已复制';
+            setTimeout(() => btnEl.innerHTML = orig, 2000);
+        }).catch(() => showToast('复制失败'));
+    }
+}
+
+// ===== 批量推广生成 =====
+async function mktGenerateBatch() {
+    const product = document.getElementById('mkt-gen-product').value.trim();
+    if (!product) { showToast('请输入产品描述'); return; }
+
+    const platforms = Array.from(document.querySelectorAll('.mkt-gen-cb:checked')).map(cb => cb.value);
+    if (platforms.length === 0) { showToast('请至少选择一个平台'); return; }
+
+    const types = {
+        copy: document.getElementById('mkt-type-copy').checked,
+        image: document.getElementById('mkt-type-image').checked,
+        video: document.getElementById('mkt-type-video').checked,
+    };
+    if (!types.copy && !types.image && !types.video) { showToast('请至少选择一种内容类型'); return; }
+
+    const extra = document.getElementById('mkt-gen-extra').value.trim();
+    const btn = document.getElementById('mkt-gen-btn');
+    btn.disabled = true;
+    btn.innerHTML = '⏳ 生成中';
+
+    const mc = document.getElementById('mkt-gen-messages');
+
+    // 用户消息
+    const platNames = platforms.map(p => (MKT_PLATFORMS[p] || {}).emoji + ' ' + (MKT_PLATFORMS[p] || {}).name || p);
+    const typeLabels = [];
+    if (types.copy) typeLabels.push('文案');
+    if (types.image) typeLabels.push('配图');
+    if (types.video) typeLabels.push('视频');
+
+    const userDiv = document.createElement('div');
+    userDiv.className = 'flex gap-2.5 max-w-md ml-auto flex-row-reverse';
+    userDiv.innerHTML = '<div class="w-7 h-7 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center text-white text-xs flex-shrink-0">👤</div>' +
+        '<div class="bg-purple-50 rounded-2xl rounded-tr-sm px-3 py-2 border border-purple-100">' +
+        '<p class="text-xs text-gray-800">' + escapeHtml(product) + '</p>' +
+        '<p class="text-[10px] text-purple-500 mt-0.5">📌 ' + platNames.join('、') + ' · ' + typeLabels.join(' + ') + '</p></div>';
+    mc.appendChild(userDiv);
+
+    document.getElementById('mkt-gen-product').value = '';
+    document.getElementById('mkt-gen-extra').value = '';
+
+    // 加载指示
+    const typingDiv = document.createElement('div');
+    typingDiv.id = 'mkt-gen-typing';
+    typingDiv.className = 'flex gap-2.5 max-w-lg';
+    typingDiv.innerHTML = '<div class="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center text-white text-xs flex-shrink-0">🤖</div>' +
+        '<div class="bg-white rounded-2xl rounded-tl-sm px-3 py-2.5 shadow-sm border border-gray-100">' +
+        '<p class="text-xs text-gray-400"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span> 正在批量生成...</p></div>';
+    mc.appendChild(typingDiv);
+    const chatArea = document.getElementById('mkt-gen-chat');
+    chatArea.scrollTop = chatArea.scrollHeight;
+
+    try {
+        const requests = [];
+        if (types.copy || types.video) {
+            const t = (types.copy && types.video) ? 'batch' : (types.copy ? 'copy' : 'video');
+            requests.push(fetch(API_BASE + '/marketing/generate', {
+                method: 'POST', headers: authHeaders(),
+                body: JSON.stringify({ type: t, product, platforms, extra }),
+            }));
+        }
+        if (types.image) {
+            requests.push(fetch(API_BASE + '/marketing/generate', {
+                method: 'POST', headers: authHeaders(),
+                body: JSON.stringify({ type: 'image', product, platforms, extra }),
+            }));
+        }
+
+        const responses = await Promise.all(requests);
+        const dataList = await Promise.all(responses.map(r => r.json()));
+
+        let genData = { copy: [], image: '', video: [] };
+        dataList.forEach(data => {
+            if (data.success && data.results) {
+                if (data.results.copy) genData.copy = data.results.copy;
+                if (data.results.image) genData.image = data.results.image;
+                if (data.results.video) genData.video = data.results.video;
+            }
+        });
+
+        typingDiv.remove();
+
+        // 渲染结果
+        const resultDiv = document.createElement('div');
+        resultDiv.className = 'flex gap-2.5 max-w-lg';
+        let contentHTML = '<div class="bg-white rounded-2xl rounded-tl-sm px-3 py-2.5 shadow-sm border border-gray-100 flex-1 min-w-0">';
+        contentHTML += '<p class="text-[10px] text-gray-400 mb-2">✅ 生成完成 · ' + new Date().toLocaleTimeString('zh-CN') + '</p>';
+
+        if (genData.copy && genData.copy.length > 0) {
+            contentHTML += '<div class="mb-3"><p class="text-xs font-medium text-gray-700 mb-1">✍️ 文案</p>';
+            genData.copy.forEach((item, idx) => {
+                const pi = MKT_PLATFORMS[item.platform] || { name: item.platform, emoji: '📄' };
+                const blockId = 'mkt-batch-copy-' + Date.now() + '-' + idx;
+                contentHTML += '<div class="mb-2 bg-gray-50 rounded-lg p-2 border border-gray-100">' +
+                    '<div class="flex items-center justify-between mb-1"><span class="text-[10px] font-medium text-gray-500">' + pi.emoji + ' ' + pi.name + '</span>' +
+                    '<button class="px-1.5 py-0.5 rounded border border-purple-200 text-purple-600 text-[9px]" onclick="mktCopyText(\'' + blockId + '\', this)">📋 复制</button></div>' +
+                    '<div id="' + blockId + '" class="text-[11px] text-gray-700 leading-relaxed whitespace-pre-wrap" style="max-height:150px;overflow-y:auto">' + escapeHtml(item.content) + '</div></div>';
+            });
+            contentHTML += '</div>';
+        }
+        if (genData.image) {
+            const imgId = 'mkt-batch-img-' + Date.now();
+            contentHTML += '<div class="mb-3"><p class="text-xs font-medium text-gray-700 mb-1">🎨 配图提示词</p>' +
+                '<div class="bg-gray-50 rounded-lg p-2 border border-gray-100">' +
+                '<div class="flex justify-end mb-1"><button class="px-1.5 py-0.5 rounded border border-purple-200 text-purple-600 text-[9px]" onclick="mktCopyText(\'' + imgId + '\', this)">📋 复制</button></div>' +
+                '<div id="' + imgId + '" class="text-[11px] text-gray-700 leading-relaxed whitespace-pre-wrap" style="max-height:150px;overflow-y:auto">' + escapeHtml(genData.image) + '</div></div></div>';
+        }
+        if (genData.video && genData.video.length > 0) {
+            genData.video.forEach((item, idx) => {
+                const pi = MKT_PLATFORMS[item.platform] || { name: item.platform, emoji: '📄' };
+                const vidId = 'mkt-batch-vid-' + Date.now() + '-' + idx;
+                contentHTML += '<div class="mb-3"><p class="text-xs font-medium text-gray-700 mb-1">🎬 ' + pi.emoji + ' ' + pi.name + ' 视频脚本</p>' +
+                    '<div class="bg-gray-50 rounded-lg p-2 border border-gray-100">' +
+                    '<div class="flex justify-end mb-1"><button class="px-1.5 py-0.5 rounded border border-purple-200 text-purple-600 text-[9px]" onclick="mktCopyText(\'' + vidId + '\', this)">📋 复制</button></div>' +
+                    '<div id="' + vidId + '" class="text-[11px] text-gray-700 leading-relaxed whitespace-pre-wrap" style="max-height:150px;overflow-y:auto">' + escapeHtml(item.content) + '</div></div></div>';
+            });
+        }
+
+        contentHTML += '<div class="flex gap-2 mt-2">' +
+            '<button class="flex-1 py-1.5 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 text-white text-[10px] font-medium" onclick="switchMarketingTab(\'publish\')">📤 去发布管理</button>' +
+            '</div>';
+        contentHTML += '</div>';
+        resultDiv.innerHTML = '<div class="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center text-white text-xs flex-shrink-0">🤖</div>' + contentHTML;
+        mc.appendChild(resultDiv);
+
+        // 保存历史
+        const videoStr = (genData.video && genData.video.length > 0) ? genData.video[0].content : '';
+        mktSaveHistory({
+            id: Date.now().toString(),
+            date: new Date().toISOString().slice(0, 10),
+            product: product,
+            platforms: platforms,
+            copy: genData.copy || [],
+            image: genData.image || '',
+            video: videoStr,
+        });
+
+    } catch (e) {
+        typingDiv.remove();
+        showToast('网络错误');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '🚀 生成';
+        chatArea.scrollTop = chatArea.scrollHeight;
+    }
+}
+
+// ===== 发布管理 =====
+function mktLoadHistory() {
+    try { return JSON.parse(localStorage.getItem('smart_marketing_history') || '[]'); }
+    catch (e) { return []; }
+}
+function mktSaveHistory(item) {
+    const history = mktLoadHistory();
+    history.push(item);
+    localStorage.setItem('smart_marketing_history', JSON.stringify(history));
+}
+
+function renderMktPublish() {
+    const history = mktLoadHistory();
+    const listEl = document.getElementById('mkt-publish-list');
+    const emptyEl = document.getElementById('mkt-publish-empty');
+
+    if (history.length === 0) {
+        listEl.innerHTML = '';
+        emptyEl.classList.remove('hidden');
+        return;
+    }
+    emptyEl.classList.add('hidden');
+
+    listEl.innerHTML = history.slice().reverse().map((item, ri) => {
+        const idx = history.length - 1 - ri;
+        const platTags = (item.platforms || []).map(pid => {
+            const p = MKT_PLATFORMS[pid];
+            return p ? '<span class="text-[9px] bg-purple-50 text-purple-600 px-1.5 py-0.5 rounded-full">' + p.emoji + ' ' + p.name + '</span>' : '';
+        }).join('');
+
+        const hasCopy = item.copy && item.copy.length > 0;
+        const hasImage = item.image && item.image.trim();
+        const hasVideo = item.video && item.video.trim();
+
+        let tabsHtml = '';
+        if (hasCopy) {
+            tabsHtml += '<div class="mb-2">';
+            item.copy.forEach((c, ci) => {
+                const p = MKT_PLATFORMS[c.platform] || { name: c.platform, emoji: '📄' };
+                const copyId = 'pub-copy-' + idx + '-' + ci;
+                tabsHtml += '<div class="mb-1.5 pb-1.5 border-b border-gray-100 last:border-0">' +
+                    '<div class="flex items-center justify-between mb-1">' +
+                    '<span class="text-[10px] font-medium text-gray-500">' + p.emoji + ' ' + p.name + '</span>' +
+                    '<div class="flex gap-1">' +
+                    '<button class="px-1.5 py-0.5 rounded border border-purple-200 text-purple-600 text-[9px]" onclick="mktCopyText(\'' + copyId + '\', this)">📋 复制</button>' +
+                    '</div></div>' +
+                    '<div id="' + copyId + '" class="text-[11px] text-gray-700 leading-relaxed whitespace-pre-wrap" style="max-height:200px;overflow-y:auto">' + escapeHtml(c.content) + '</div></div>';
+            });
+            tabsHtml += '</div>';
+        }
+        if (hasImage) {
+            const imgId = 'pub-img-' + idx;
+            tabsHtml += '<div class="mb-2"><p class="text-[10px] text-gray-500 mb-1">🎨 配图提示词</p>' +
+                '<div class="flex justify-end mb-1"><button class="px-1.5 py-0.5 rounded border border-purple-200 text-purple-600 text-[9px]" onclick="mktCopyText(\'' + imgId + '\', this)">📋 复制</button></div>' +
+                '<div id="' + imgId + '" class="text-[11px] text-gray-700 whitespace-pre-wrap bg-gray-50 rounded-lg p-2" style="max-height:200px;overflow-y:auto">' + escapeHtml(item.image) + '</div></div>';
+        }
+        if (hasVideo) {
+            const vidId = 'pub-vid-' + idx;
+            tabsHtml += '<div class="mb-2"><p class="text-[10px] text-gray-500 mb-1">🎬 视频脚本</p>' +
+                '<div class="flex justify-end mb-1"><button class="px-1.5 py-0.5 rounded border border-purple-200 text-purple-600 text-[9px]" onclick="mktCopyText(\'' + vidId + '\', this)">📋 复制</button></div>' +
+                '<div id="' + vidId + '" class="text-[11px] text-gray-700 whitespace-pre-wrap bg-gray-50 rounded-lg p-2" style="max-height:200px;overflow-y:auto">' + escapeHtml(item.video) + '</div></div>';
+        }
+
+        const pubLinks = (item.platforms || [])
+            .filter(pid => MKT_PUBLISH_LINKS[pid])
+            .map(pid => {
+                const p = MKT_PLATFORMS[pid] || { emoji: '', name: pid };
+                return '<a href="' + MKT_PUBLISH_LINKS[pid] + '" target="_blank" class="px-2 py-0.5 rounded border border-gray-200 text-gray-600 text-[9px] inline-flex items-center gap-0.5 hover:border-purple-300 hover:text-purple-600">' + p.emoji + ' ' + p.name + ' →</a>';
+            }).join('');
+
+        return '<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">' +
+            '<div class="px-3 pt-3 pb-1">' +
+            '<div class="flex items-start justify-between">' +
+            '<div><p class="text-[10px] text-gray-400">' + (item.date || '') + '</p>' +
+            '<h3 class="font-semibold text-gray-900 text-xs">' + escapeHtml(item.product || '未命名') + '</h3></div>' +
+            '<button onclick="mktDeleteHistory(' + idx + ')" class="text-gray-400 hover:text-red-500 p-0.5 bg-transparent border-none cursor-pointer" title="删除"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"/></svg></button></div>' +
+            '<div class="flex flex-wrap gap-1 mt-1">' + platTags + '</div></div>' +
+            '<div class="px-3 py-2">' + tabsHtml + '</div>' +
+            (pubLinks ? '<div class="px-3 py-2 bg-gray-50 border-t border-gray-100"><p class="text-[9px] text-gray-400 mb-1">跳转发布</p><div class="flex flex-wrap gap-1">' + pubLinks + '</div></div>' : '') +
+            '</div>';
+    }).join('');
+}
+
+function mktDeleteHistory(idx) {
+    if (!confirm('确定要删除这条记录吗？')) return;
+    const history = mktLoadHistory();
+    history.splice(idx, 1);
+    localStorage.setItem('smart_marketing_history', JSON.stringify(history));
+    renderMktPublish();
+    showToast('已删除');
+}
+
+// ===== 工作流 =====
+const WF_KEY = 'smart_marketing_workflows';
+const FREQ_MS = { daily: 86400000, '2days': 172800000, weekly: 604800000 };
+const FREQ_LABELS = { daily: '每天', '2days': '每2天', weekly: '每周', manual: '仅手动' };
+
+function loadWfs() { try { return JSON.parse(localStorage.getItem(WF_KEY) || '[]'); } catch { return []; } }
+function saveWfs(wfs) { localStorage.setItem(WF_KEY, JSON.stringify(wfs)); }
+
+function renderWfList() {
+    const wfs = loadWfs();
+    const listEl = document.getElementById('mkt-wf-list');
+    const emptyEl = document.getElementById('mkt-wf-empty');
+
+    if (wfs.length === 0) {
+        listEl.innerHTML = '';
+        emptyEl.classList.remove('hidden');
+        return;
+    }
+    emptyEl.classList.add('hidden');
+
+    listEl.innerHTML = wfs.map((wf, idx) => {
+        const platBadges = wf.platforms.map(pid => {
+            const p = MKT_PLATFORMS[pid];
+            return p ? '<span class="text-[9px] bg-purple-50 text-purple-600 px-1.5 py-0.5 rounded-full">' + p.emoji + ' ' + p.name + '</span>' : '';
+        }).join('');
+        const typeBadges = [
+            wf.types.copy ? '<span class="text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded-full">✍️ 文案</span>' : '',
+            wf.types.image ? '<span class="text-[9px] bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded-full">🎨 配图</span>' : '',
+            wf.types.video ? '<span class="text-[9px] bg-violet-50 text-violet-600 px-1.5 py-0.5 rounded-full">🎬 视频</span>' : '',
+        ].filter(Boolean).join('');
+        const statusHtml = wf.lastGenerated
+            ? '<span class="text-[9px] bg-green-50 text-green-600 px-1.5 py-0.5 rounded-full">✅ ' + new Date(wf.lastGenerated).toLocaleDateString('zh-CN') + '</span>'
+            : '<span class="text-[9px] text-gray-400">未生成</span>';
+
+        return '<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-3">' +
+            '<div class="flex items-start justify-between mb-2">' +
+            '<div class="flex-1"><div class="flex items-center gap-1.5 mb-0.5">' +
+            '<h3 class="font-semibold text-gray-900 text-xs">' + escapeHtml(wf.product) + '</h3>' +
+            (wf.enabled ? '<span class="w-1.5 h-1.5 rounded-full bg-green-400"></span>' : '<span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span>') +
+            '</div><p class="text-[10px] text-gray-500 line-clamp-1">' + escapeHtml(wf.description) + '</p></div>' +
+            '<div class="flex items-center gap-1">' +
+            '<button onclick="toggleWf(' + idx + ')" class="px-2 py-0.5 rounded border text-[9px] font-medium ' + (wf.enabled ? 'border-green-200 text-green-600' : 'border-gray-200 text-gray-500') + '">' + (wf.enabled ? '✅' : '⏸') + '</button>' +
+            '<button onclick="openWfModal(' + idx + ')" class="text-gray-400 hover:text-purple-500 p-0.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>' +
+            '<button onclick="deleteWf(' + idx + ')" class="text-gray-400 hover:text-red-500 p-0.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"/></svg></button>' +
+            '</div></div>' +
+            '<div class="flex flex-wrap gap-1 mb-2">' + platBadges + typeBadges + '<span class="text-[9px] bg-gray-50 text-gray-500 px-1.5 py-0.5 rounded-full">🔄 ' + (FREQ_LABELS[wf.frequency] || wf.frequency) + '</span></div>' +
+            '<div class="flex items-center justify-between">' +
+            '<div class="text-[10px] text-gray-400">上次: ' + statusHtml + '</div>' +
+            '<button onclick="generateForWf(' + idx + ', this)" class="px-3 py-1 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-[10px] font-medium">🚀 立即生成</button>' +
+            '</div></div>';
+    }).join('');
+}
+
+function openWfModal(editIdx) {
+    const modal = document.getElementById('mkt-wf-modal');
+    const title = document.getElementById('mkt-wf-modal-title');
+    const idInput = document.getElementById('mkt-wf-edit-id');
+
+    if (editIdx !== undefined) {
+        const wfs = loadWfs();
+        const wf = wfs[editIdx];
+        title.textContent = '编辑项目';
+        idInput.value = editIdx.toString();
+        document.getElementById('mkt-wf-product').value = wf.product;
+        document.getElementById('mkt-wf-desc').value = wf.description;
+        document.getElementById('mkt-wf-extra').value = wf.extra || '';
+        document.querySelectorAll('.mkt-wf-plat-cb').forEach(cb => { cb.checked = wf.platforms.includes(cb.value); });
+        document.getElementById('mkt-wf-type-copy').checked = wf.types.copy;
+        document.getElementById('mkt-wf-type-image').checked = wf.types.image;
+        document.getElementById('mkt-wf-type-video').checked = wf.types.video;
+        document.querySelectorAll('.mkt-wf-freq-radio').forEach(r => { r.checked = r.value === wf.frequency; });
+    } else {
+        title.textContent = '添加项目';
+        idInput.value = '';
+        document.getElementById('mkt-wf-product').value = '';
+        document.getElementById('mkt-wf-desc').value = '';
+        document.getElementById('mkt-wf-extra').value = '';
+        document.querySelectorAll('.mkt-wf-plat-cb').forEach(cb => { cb.checked = true; });
+        document.getElementById('mkt-wf-type-copy').checked = true;
+        document.getElementById('mkt-wf-type-image').checked = true;
+        document.getElementById('mkt-wf-type-video').checked = false;
+        document.querySelectorAll('.mkt-wf-freq-radio').forEach(r => { r.checked = r.value === 'daily'; });
+    }
+    modal.classList.remove('hidden');
+}
+
+function closeWfModal() {
+    document.getElementById('mkt-wf-modal').classList.add('hidden');
+}
+
+function saveWfItem() {
+    const product = document.getElementById('mkt-wf-product').value.trim();
+    const desc = document.getElementById('mkt-wf-desc').value.trim();
+    if (!product || !desc) { showToast('请填写产品名称和描述'); return; }
+
+    const platforms = Array.from(document.querySelectorAll('.mkt-wf-plat-cb:checked')).map(cb => cb.value);
+    if (platforms.length === 0) { showToast('至少选择一个平台'); return; }
+
+    const types = {
+        copy: document.getElementById('mkt-wf-type-copy').checked,
+        image: document.getElementById('mkt-wf-type-image').checked,
+        video: document.getElementById('mkt-wf-type-video').checked,
+    };
+    let frequency = 'daily';
+    document.querySelectorAll('.mkt-wf-freq-radio:checked').forEach(r => { frequency = r.value; });
+    const extra = document.getElementById('mkt-wf-extra').value.trim();
+    const editId = document.getElementById('mkt-wf-edit-id').value;
+
+    const wfs = loadWfs();
+    if (editId !== '') {
+        const idx = parseInt(editId);
+        wfs[idx] = { ...wfs[idx], product, description: desc, platforms, types, frequency, extra };
+    } else {
+        wfs.push({
+            id: Date.now().toString(),
+            product, description: desc, platforms, types, frequency, extra,
+            enabled: true, lastGenerated: null, createdAt: Date.now(),
+        });
+    }
+    saveWfs(wfs);
+    closeWfModal();
+    renderWfList();
+    showToast('✅ 已保存');
+}
+
+function toggleWf(idx) {
+    const wfs = loadWfs();
+    wfs[idx].enabled = !wfs[idx].enabled;
+    saveWfs(wfs);
+    renderWfList();
+    showToast(wfs[idx].enabled ? '✅ 已启用' : '⏸ 已暂停');
+}
+
+function deleteWf(idx) {
+    if (!confirm('确定删除此工作流？')) return;
+    const wfs = loadWfs();
+    wfs.splice(idx, 1);
+    saveWfs(wfs);
+    renderWfList();
+    showToast('🗑 已删除');
+}
+
+async function generateForWf(idx, btnEl) {
+    const wfs = loadWfs();
+    const wf = wfs[idx];
+    if (!wf) return;
+
+    btnEl.disabled = true;
+    btnEl.innerHTML = '⏳ 生成中';
+
+    try {
+        const product = wf.product + '\n' + wf.description;
+        const requests = [];
+        if (wf.types.copy || wf.types.video) {
+            const t = (wf.types.copy && wf.types.video) ? 'batch' : (wf.types.copy ? 'copy' : 'video');
+            requests.push(fetch(API_BASE + '/marketing/generate', {
+                method: 'POST', headers: authHeaders(),
+                body: JSON.stringify({ type: t, product, platforms: wf.platforms, extra: wf.extra || '' }),
+            }));
+        }
+        if (wf.types.image) {
+            requests.push(fetch(API_BASE + '/marketing/generate', {
+                method: 'POST', headers: authHeaders(),
+                body: JSON.stringify({ type: 'image', product, platforms: wf.platforms, extra: wf.extra || '' }),
+            }));
+        }
+
+        const responses = await Promise.all(requests);
+        const dataList = await Promise.all(responses.map(r => r.json()));
+
+        let genData = { copy: [], image: '', video: [] };
+        dataList.forEach(data => {
+            if (data.success && data.results) {
+                if (data.results.copy) genData.copy = data.results.copy;
+                if (data.results.image) genData.image = data.results.image;
+                if (data.results.video) genData.video = data.results.video;
+            }
+        });
+
+        const videoStr = (genData.video && genData.video.length > 0) ? genData.video[0].content : '';
+        mktSaveHistory({
+            id: Date.now().toString(),
+            date: new Date().toISOString().slice(0, 10),
+            product: wf.product,
+            platforms: wf.platforms,
+            copy: genData.copy || [],
+            image: genData.image || '',
+            video: videoStr,
+        });
+
+        wfs[idx].lastGenerated = Date.now();
+        saveWfs(wfs);
+        renderWfList();
+        showToast('✅ 已生成并保存到发布管理');
+    } catch (e) {
+        showToast('生成失败');
+    } finally {
+        btnEl.disabled = false;
+        btnEl.innerHTML = '🚀 立即生成';
+    }
+}
+
+// 工作流自动生成检查（打开营销页时检查）
+function checkWfAutoGenerate() {
+    const wfs = loadWfs();
+    let needsGen = false;
+    wfs.forEach((wf, idx) => {
+        if (!wf.enabled || wf.frequency === 'manual') return;
+        const interval = FREQ_MS[wf.frequency] || 86400000;
+        if (!wf.lastGenerated || (Date.now() - wf.lastGenerated) >= interval) {
+            needsGen = true;
+        }
+    });
+    return needsGen;
+}
+
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
 init();

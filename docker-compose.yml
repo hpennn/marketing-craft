@@ -10,4 +10,7 @@ services:
       - ./data:/app/data
     environment:
       - TZ=Asia/Shanghai
+      - ARK_API_KEY=${ARK_API_KEY:-your_ark_api_key_here}
+      - ARK_ENDPOINT=https://ark.cn-beijing.volces.com/api/v3
+      - ARK_MODEL_ID=${ARK_MODEL_ID:-your_model_id_here}
     restart: unless-stopped
