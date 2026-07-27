@@ -3,9 +3,9 @@ version: '3.8'
 services:
   ai-staff:
     build: .
-    container_name: ai-staff
+    container_name: marketing-craft
     ports:
-      - "8002:8000"
+      - "8004:8000"
     volumes:
       - ./data:/app/data
     environment:
