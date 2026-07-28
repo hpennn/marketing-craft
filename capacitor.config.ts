@@ -1,12 +1,12 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.zhinenti.aistaff',
-  appName: 'AI智能客服',
+  appId: 'com.zhinenti.craft',
+  appName: '智能营销助手',
   webDir: 'frontend',
   bundledWebRuntime: false,
   server: {
-    url: 'https://www.zhinenti.cn',  // 线上模式：直接加载线上页面
+    url: 'https://craft.zhinenti.cn',  // 线上模式：直接加载线上页面
     // 如果要打包静态文件，注释掉 url 并取消下面注释：
     // android: { allowMixedContent: true }
   },
@@ -34,7 +34,7 @@ const config: CapacitorConfig = {
     webContentsDebuggingEnabled: false,
   },
   ios: {
-    scheme: 'AI智能客服',
+    scheme: '智能营销助手',
   },
 };
 

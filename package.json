@@ -1,10 +1,10 @@
 {
-  "name": "ai-staff",
+  "name": "marketing-craft",
   "version": "1.0.0",
-  "description": "AI智能客服 - 轻量级对话式AI客服系统",
+  "description": "智能营销助手 - AI驱动的全渠道营销内容生成平台",
   "scripts": {
     "build": "echo 'No build step needed'",
-    "cap:init": "npx cap init 'AI智能客服' com.zhinenti.aistaff --web-dir=frontend",
+    "cap:init": "npx cap init '智能营销助手' com.zhinenti.craft --web-dir=frontend",
     "cap:add:android": "npx cap add android",
     "cap:add:ios": "npx cap add ios",
     "cap:sync": "npx cap sync",

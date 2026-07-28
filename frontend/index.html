@@ -111,10 +111,42 @@
             </button>
         </div>
         <div class="flex-1 overflow-y-auto px-4 py-4">
+            <!-- 快捷操作 -->
+            <div class="mb-5">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">快捷操作</h2>
+                </div>
+                <div class="grid grid-cols-4 gap-2">
+                    <div class="flex flex-col items-center gap-1 p-2.5 rounded-xl bg-white border border-slate-100 cursor-pointer hover:shadow-md hover:border-indigo-100 transition-all active:scale-95" onclick="openSkillDetail('xiaohongshu')">
+                        <span class="text-lg">📝</span>
+                        <span class="text-[10px] text-slate-600 font-medium">小红书种草</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-1 p-2.5 rounded-xl bg-white border border-slate-100 cursor-pointer hover:shadow-md hover:border-indigo-100 transition-all active:scale-95" onclick="openSkillDetail('video_script')">
+                        <span class="text-lg">🎬</span>
+                        <span class="text-[10px] text-slate-600 font-medium">短视频脚本</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-1 p-2.5 rounded-xl bg-white border border-slate-100 cursor-pointer hover:shadow-md hover:border-indigo-100 transition-all active:scale-95" onclick="openSkillDetail('seo_article')">
+                        <span class="text-lg">🔍</span>
+                        <span class="text-[10px] text-slate-600 font-medium">SEO文章</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-1 p-2.5 rounded-xl bg-white border border-slate-100 cursor-pointer hover:shadow-md hover:border-indigo-100 transition-all active:scale-95" onclick="openSkillDetail('product_desc')">
+                        <span class="text-lg">📦</span>
+                        <span class="text-[10px] text-slate-600 font-medium">产品描述</span>
+                    </div>
+                </div>
+            </div>
+            <!-- 最近使用 -->
+            <div class="mb-5" id="recent-usage-section" style="display:none">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">最近使用</h2>
+                    <span class="text-[10px] text-indigo-400 cursor-pointer font-medium" onclick="clearTasks();renderRecentUsage()">清空</span>
+                </div>
+                <div class="flex flex-wrap gap-2" id="recent-usage-list"></div>
+            </div>
             <div class="mb-5">
                 <div class="flex items-center justify-between mb-3">
                     <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">预置技能</h2>
-                    <span class="text-[10px] text-indigo-400 bg-indigo-50 px-2 py-0.5 rounded-full font-medium">6个可用</span>
+                    <span class="text-[10px] text-indigo-400 bg-indigo-50 px-2 py-0.5 rounded-full font-medium">8个可用</span>
                 </div>
                 <div class="grid grid-cols-2 gap-3" id="skills-grid"></div>
             </div>
@@ -299,6 +331,14 @@
                     <button class="mkt-platform-chip flex-shrink-0 flex items-center gap-0.5 px-2 py-1 rounded-full border border-gray-200 text-[10px] font-medium text-gray-600 hover:border-purple-300 hover:text-purple-600 transition-all" data-platform="toutiao" data-name="头条" data-emoji="🔥"><span>🔥</span><span>头条</span></button>
                     <button class="mkt-platform-chip flex-shrink-0 flex items-center gap-0.5 px-2 py-1 rounded-full border border-gray-200 text-[10px] font-medium text-gray-600 hover:border-purple-300 hover:text-purple-600 transition-all" data-platform="jike" data-name="即刻" data-emoji="📌"><span>📌</span><span>即刻</span></button>
                 </div>
+                <!-- 平台快捷模板 -->
+                <div class="flex items-center gap-1.5 mb-1.5 overflow-x-auto pb-0.5" style="scrollbar-width:none">
+                    <span class="text-[10px] text-gray-400 flex-shrink-0">模板：</span>
+                    <button class="mkt-tpl-btn flex-shrink-0 px-2 py-0.5 rounded-full border border-gray-200 text-[10px] text-gray-500 hover:border-purple-300 hover:text-purple-600 transition-all bg-transparent" onclick="mktFillTemplate('xiaohongshu_tpl')">📕 小红书种草</button>
+                    <button class="mkt-tpl-btn flex-shrink-0 px-2 py-0.5 rounded-full border border-gray-200 text-[10px] text-gray-500 hover:border-purple-300 hover:text-purple-600 transition-all bg-transparent" onclick="mktFillTemplate('douyin_tpl')">🎵 抖音脚本</button>
+                    <button class="mkt-tpl-btn flex-shrink-0 px-2 py-0.5 rounded-full border border-gray-200 text-[10px] text-gray-500 hover:border-purple-300 hover:text-purple-600 transition-all bg-transparent" onclick="mktFillTemplate('wechat_tpl')">💬 公众号长文</button>
+                    <button class="mkt-tpl-btn flex-shrink-0 px-2 py-0.5 rounded-full border border-gray-200 text-[10px] text-gray-500 hover:border-purple-300 hover:text-purple-600 transition-all bg-transparent" onclick="mktFillTemplate('weibo_tpl')">📢 微博话题</button>
+                </div>
                 <div class="flex flex-col gap-1.5">
                     <textarea id="mkt-product-input" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none" placeholder="输入产品名称、核心卖点、目标人群..."></textarea>
                     <div class="flex gap-2 items-center">
@@ -322,6 +362,15 @@
                 <div id="mkt-gen-messages"></div>
             </div>
             <div class="border-t border-gray-200 bg-white px-3 py-2.5 max-h-[50vh] overflow-y-auto">
+                <!-- 快捷产品模板 + 导入 -->
+                <div class="flex items-center gap-1.5 mb-2 overflow-x-auto pb-0.5" style="scrollbar-width:none">
+                    <span class="text-[10px] text-gray-400 flex-shrink-0">快捷：</span>
+                    <button class="flex-shrink-0 px-2 py-0.5 rounded-full border border-gray-200 text-[10px] text-gray-500 hover:border-purple-300 hover:text-purple-600 transition-all bg-transparent" onclick="mktFillGenTemplate('ecom')">📦 电商产品</button>
+                    <button class="flex-shrink-0 px-2 py-0.5 rounded-full border border-gray-200 text-[10px] text-gray-500 hover:border-purple-300 hover:text-purple-600 transition-all bg-transparent" onclick="mktFillGenTemplate('food')">🍜 餐饮美食</button>
+                    <button class="flex-shrink-0 px-2 py-0.5 rounded-full border border-gray-200 text-[10px] text-gray-500 hover:border-purple-300 hover:text-purple-600 transition-all bg-transparent" onclick="mktFillGenTemplate('edu')">📚 教育课程</button>
+                    <button class="flex-shrink-0 px-2 py-0.5 rounded-full border border-gray-200 text-[10px] text-gray-500 hover:border-purple-300 hover:text-purple-600 transition-all bg-transparent" onclick="mktFillGenTemplate('saas')">💻 SaaS工具</button>
+                    <button class="flex-shrink-0 px-2 py-0.5 rounded-full border border-green-200 text-[10px] text-green-600 hover:border-green-400 transition-all bg-green-50 ml-auto" onclick="mktImportFromCopy()">📥 从文案导入</button>
+                </div>
                 <textarea id="mkt-gen-product" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none mb-2" placeholder="输入产品名称、核心卖点、目标人群..."></textarea>
                 <div class="flex items-center justify-between mb-1">
                     <span class="text-[10px] text-gray-500">选择平台</span>
@@ -358,10 +407,15 @@
         <div id="mkt-page-publish" class="mkt-page flex-1 overflow-y-auto px-4 py-4 space-y-3 hidden">
             <div class="flex gap-2.5 max-w-md mb-2">
                 <div class="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center text-white text-xs flex-shrink-0">📢</div>
-                <div class="bg-white rounded-2xl rounded-tl-sm px-3 py-2.5 shadow-sm border border-gray-100">
+                <div class="bg-white rounded-2xl rounded-tl-sm px-3 py-2.5 shadow-sm border border-gray-100 flex-1">
                     <p class="text-xs text-gray-700">发布管理助手 📢</p>
                     <p class="text-[11px] text-gray-500 mt-0.5">管理所有生成内容，可复制文案或跳转平台发布。</p>
                 </div>
+            </div>
+            <!-- 批量操作栏 -->
+            <div id="mkt-publish-toolbar" class="flex items-center gap-2 hidden">
+                <button onclick="mktCopyAllPublish()" class="flex-1 px-3 py-1.5 rounded-lg border border-purple-200 text-purple-600 text-[10px] font-medium hover:bg-purple-50 transition-all">📋 一键复制全部</button>
+                <button onclick="mktExportMarkdown()" class="flex-1 px-3 py-1.5 rounded-lg border border-green-200 text-green-600 text-[10px] font-medium hover:bg-green-50 transition-all">📄 导出Markdown</button>
             </div>
             <div id="mkt-publish-list" class="space-y-3"></div>
             <div id="mkt-publish-empty" class="flex flex-col items-center justify-center py-10 text-gray-400">
@@ -378,6 +432,13 @@
                 <button onclick="openWfModal()" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-medium hover:from-purple-700 hover:to-indigo-700 transition-all">+ 添加项目</button>
             </div>
             <p class="text-[11px] text-gray-500 mb-3">配置项目后，点击「立即生成」自动创建推广内容并保存到发布管理。</p>
+            <!-- 预设工作流模板 -->
+            <div class="flex items-center gap-1.5 mb-3 overflow-x-auto pb-0.5" style="scrollbar-width:none">
+                <span class="text-[10px] text-gray-400 flex-shrink-0">模板：</span>
+                <button class="flex-shrink-0 px-2 py-1 rounded-full border border-gray-200 text-[10px] text-gray-500 hover:border-purple-300 hover:text-purple-600 transition-all bg-transparent" onclick="mktLoadWfTemplate('daily')">📅 日常运营</button>
+                <button class="flex-shrink-0 px-2 py-1 rounded-full border border-gray-200 text-[10px] text-gray-500 hover:border-purple-300 hover:text-purple-600 transition-all bg-transparent" onclick="mktLoadWfTemplate('launch')">🚀 新品上市</button>
+                <button class="flex-shrink-0 px-2 py-1 rounded-full border border-gray-200 text-[10px] text-gray-500 hover:border-purple-300 hover:text-purple-600 transition-all bg-transparent" onclick="mktLoadWfTemplate('festival')">🎉 节日营销</button>
+            </div>
             <div id="mkt-wf-list" class="space-y-3"></div>
             <div id="mkt-wf-empty" class="flex flex-col items-center justify-center py-10 text-gray-400">
                 <div class="text-4xl mb-2">📋</div>
@@ -394,7 +455,7 @@
                     <div class="space-y-3">
                         <div>
                             <label class="block text-xs font-medium text-gray-700 mb-1">产品名称 *</label>
-                            <input id="mkt-wf-product" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="例：AI智能客服系统">
+                            <input id="mkt-wf-product" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="例：智能营销助手会员版">
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-700 mb-1">产品描述 *</label>
@@ -597,14 +658,14 @@ const API_BASE = '/api';
 
 // ===== 数据 =====
 const PRESET_SKILLS = [
-    { id: 'xiaohongshu', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>', name: '小红书种草文', desc: '生成小红书风格种草笔记', color: 'from-red-500 to-pink-600', bgLight: 'bg-red-50', textColor: 'text-red-600', inputType: 'textarea', placeholder: '描述产品/服务，如：一款保湿面霜，适合干皮，价格89元', tags: ['小红书', '种草'] },
-    { id: 'video_script', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>', name: '短视频脚本', desc: '生成短视频脚本，含hook、台词、画面', color: 'from-purple-500 to-violet-600', bgLight: 'bg-purple-50', textColor: 'text-purple-600', inputType: 'textarea', placeholder: '描述视频主题，如：30秒产品展示，风格活泼，目标抖音平台', tags: ['短视频', '脚本'] },
-    { id: 'seo_article', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>', name: 'SEO优化文章', desc: '生成SEO优化文章，含标题结构和关键词布局', color: 'from-blue-500 to-indigo-600', bgLight: 'bg-blue-50', textColor: 'text-blue-600', inputType: 'textarea', placeholder: "输入关键词和主题，如：关键词'保湿面霜推荐'，写一篇1500字测评", tags: ['SEO', '文章'] },
-    { id: 'ad_copy', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>', name: '广告创意', desc: '生成多版本广告文案，含CTA和A/B测试建议', color: 'from-orange-500 to-amber-600', bgLight: 'bg-orange-50', textColor: 'text-orange-600', inputType: 'textarea', placeholder: '描述产品和投放渠道，如：电商Banner广告，突出限时折扣', tags: ['广告', '创意'] },
-    { id: 'product_desc', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>', name: '产品描述', desc: '生成电商产品描述，含卖点、参数、场景', color: 'from-teal-500 to-cyan-600', bgLight: 'bg-teal-50', textColor: 'text-teal-600', inputType: 'textarea', placeholder: '输入产品信息，如：蓝牙耳机，降噪功能，续航30小时，价格299', tags: ['产品', '电商'] },
-    { id: 'email_marketing', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>', name: '邮件营销', desc: '生成营销邮件，含主题行、正文、CTA', color: 'from-green-500 to-emerald-600', bgLight: 'bg-green-50', textColor: 'text-green-600', inputType: 'textarea', placeholder: '描述营销目的，如：新品发布通知，面向老客户，包含优惠码', tags: ['邮件', '营销'] },
-    { id: 'social_media', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>', name: '社媒内容', desc: '生成社交媒体帖子，适配多平台风格', color: 'from-pink-500 to-rose-600', bgLight: 'bg-pink-50', textColor: 'text-pink-600', inputType: 'textarea', placeholder: '描述平台和主题，如：微信公众号，分享行业趋势，专业风格', tags: ['社媒', '内容'] },
-    { id: 'marketing_plan', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>', name: '营销方案', desc: '生成完整营销方案，含分析和预算', color: 'from-indigo-500 to-blue-600', bgLight: 'bg-indigo-50', textColor: 'text-indigo-600', inputType: 'textarea', placeholder: '描述产品/品牌和目标，如：新品牌上线，预算5万，目标3个月获取1万用户', tags: ['方案', '策划'] }
+    { id: 'xiaohongshu', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>', name: '小红书种草文', desc: '生成小红书风格种草笔记', color: 'from-red-500 to-pink-600', bgLight: 'bg-red-50', textColor: 'text-red-600', inputType: 'textarea', placeholder: '例：一款保湿面霜，主打玻尿酸成分，适合干皮女生，价格89元，突出性价比', tips: '💡 填写建议：\n• 写明产品名称和核心卖点（1-2个即可）\n• 说明目标人群（年龄/性别/肤质等）\n• 注明价格区间和使用场景\n• 可补充竞品对比或独特优势', tags: ['小红书', '种草'] },
+    { id: 'video_script', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>', name: '短视频脚本', desc: '生成短视频脚本，含hook、台词、画面', color: 'from-purple-500 to-violet-600', bgLight: 'bg-purple-50', textColor: 'text-purple-600', inputType: 'textarea', placeholder: '例：30秒护肤产品开箱视频，口播+展示，开头用痛点提问hook，抖音风格', tips: '💡 填写建议：\n• 说明视频时长（15秒/30秒/1分钟）\n• 描述拍摄方式（口播/产品展示/Vlog）\n• 注明目标平台和风格调性\n• 可补充需要包含的关键话术', tags: ['短视频', '脚本'] },
+    { id: 'seo_article', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>', name: 'SEO优化文章', desc: '生成SEO优化文章，含标题结构和关键词布局', color: 'from-blue-500 to-indigo-600', bgLight: 'bg-blue-50', textColor: 'text-blue-600', inputType: 'textarea', placeholder: "例：关键词'2024保湿面霜推荐'，写一篇1500字测评文章，面向25-35岁女性", tips: '💡 填写建议：\n• 明确核心关键词和长尾词\n• 说明文章类型（测评/教程/对比/榜单）\n• 注明目标字数（800-3000字）\n• 可指定目标读者画像', tags: ['SEO', '文章'] },
+    { id: 'ad_copy', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>', name: '广告创意', desc: '生成多版本广告文案，含CTA和A/B测试建议', color: 'from-orange-500 to-amber-600', bgLight: 'bg-orange-50', textColor: 'text-orange-600', inputType: 'textarea', placeholder: '例：电商618大促Banner，主推蓝牙耳机限时5折，目标转化率提升30%', tips: '💡 填写建议：\n• 说明广告投放渠道（Banner/信息流/SEM）\n• 明确促销信息和卖点\n• 设定目标（转化率/曝光量/点击率）\n• 可要求生成多版本做A/B测试', tags: ['广告', '创意'] },
+    { id: 'product_desc', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>', name: '产品描述', desc: '生成电商产品描述，含卖点、参数、场景', color: 'from-teal-500 to-cyan-600', bgLight: 'bg-teal-50', textColor: 'text-teal-600', inputType: 'textarea', placeholder: '例：蓝牙耳机ANC主动降噪，续航30h，IPX5防水，价格299，面向通勤白领', tips: '💡 填写建议：\n• 列出产品核心参数（功能/规格/价格）\n• 说明使用场景（通勤/运动/办公）\n• 注明投放平台（淘宝/京东/拼多多）\n• 可补充对标竞品或差异化卖点', tags: ['产品', '电商'] },
+    { id: 'email_marketing', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>', name: '邮件营销', desc: '生成营销邮件，含主题行、正文、CTA', color: 'from-green-500 to-emerald-600', bgLight: 'bg-green-50', textColor: 'text-green-600', inputType: 'textarea', placeholder: '例：新品SaaS工具上线通知，面向已注册未付费用户，含限时7天免费试用', tips: '💡 填写建议：\n• 说明邮件目的（新品/促销/召回/通知）\n• 描述目标人群和当前状态\n• 注明包含的优惠信息（折扣码/试用期）\n• 可指定邮件语气（正式/亲切/紧迫）', tags: ['邮件', '营销'] },
+    { id: 'social_media', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>', name: '社媒内容', desc: '生成社交媒体帖子，适配多平台风格', color: 'from-pink-500 to-rose-600', bgLight: 'bg-pink-50', textColor: 'text-pink-600', inputType: 'textarea', placeholder: '例：微信公众号，分享AI行业最新趋势，专业但易懂的风格，800字左右', tips: '💡 填写建议：\n• 指定目标平台和发布频率\n• 说明内容主题和角度\n• 注明风格调性（专业/活泼/走心）\n• 可补充热点话题或行业动态', tags: ['社媒', '内容'] },
+    { id: 'marketing_plan', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>', name: '营销方案', desc: '生成完整营销方案，含分析和预算', color: 'from-indigo-500 to-blue-600', bgLight: 'bg-indigo-50', textColor: 'text-indigo-600', inputType: 'textarea', placeholder: '例：DTC护肤品牌首月上市计划，预算10万，目标小红书种草+抖音带货，KPI:GMV 50万', tips: '💡 填写建议：\n• 说明品牌/产品阶段（新品牌/成熟品/转型）\n• 明确预算范围和KPI指标\n• 列出已有渠道和资源优势\n• 可补充竞品参考或行业背景', tags: ['方案', '策划'] }
 ];
 
 const DEFAULT_AGENTS = [
@@ -976,8 +1037,26 @@ function init() {
     renderAgentsGrid();
     loadSkillHistory();
     updateUsageCount();
+    renderRecentUsage();
     checkAuth(); // Check login state and update UI
     fetchCredits(); // Load credits on init
+}
+
+function renderRecentUsage() {
+    const section = document.getElementById('recent-usage-section');
+    const list = document.getElementById('recent-usage-list');
+    if (!taskHistory.length) { section.style.display = 'none'; return; }
+    section.style.display = '';
+    const recent = taskHistory.slice(-6).reverse();
+    list.innerHTML = recent.map(t => {
+        const skill = PRESET_SKILLS.find(s => s.id === t.skillId);
+        const isAgent = t.skillId && t.skillId.startsWith('agent_');
+        const agent = isAgent ? getAllAgents().find(a => 'agent_' + a.id === t.skillId) : null;
+        const icon = skill ? (skill.tags ? skill.tags[0] : '⚡') : (agent ? agent.icon : '⚡');
+        const name = t.skillName || '任务';
+        const timeStr = formatTime(t.time);
+        return '<div class="flex items-center gap-1.5 px-2.5 py-1.5 bg-white rounded-lg border border-slate-100 text-[10px] text-slate-600 cursor-pointer hover:border-indigo-200 hover:bg-indigo-50/30 transition-all" onclick="' + (skill ? "openSkillDetail('" + t.skillId + "')" : '') + '"><span>' + icon + '</span><span class="font-medium">' + name + '</span><span class="text-slate-300">' + timeStr + '</span></div>';
+    }).join('');
 }
 
 function getAllAgents() { return [...DEFAULT_AGENTS, ...customAgents]; }
@@ -1310,6 +1389,12 @@ function openSkillDetail(skillId) {
     } else {
         inputArea.innerHTML = `<div onclick="document.getElementById('skill-file-input').click()" class="border-2 border-dashed border-slate-200 rounded-xl p-4 text-center cursor-pointer hover:border-indigo-300 hover:bg-indigo-50/30 transition-all"><p class="text-sm text-slate-500">📎 点击上传文件（可选）</p><p id="skill-file-names" class="text-xs text-indigo-600 mt-1 hidden"></p><div id="skill-file-previews" class="flex flex-wrap gap-2 mt-1 hidden"></div></div><input type="file" id="skill-file-input" class="hidden" accept="image/*,.pdf,.xlsx,.xls,.csv,.docx" multiple onchange="onSkillFileSelected(this)"><textarea id="skill-input-text" rows="3" placeholder="${skill.placeholder}" class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm resize-none focus:border-indigo-400 transition-all bg-slate-50 focus:bg-white"></textarea>`;
     }
+    // Add tips panel
+    const tipsPanel = document.createElement('div');
+    tipsPanel.className = 'mb-2';
+    tipsPanel.innerHTML = '<div class="flex items-center justify-between px-3 py-2 bg-amber-50 rounded-xl border border-amber-100 cursor-pointer select-none" onclick="this.nextElementSibling.classList.toggle(\'hidden\');this.querySelector(\'.tips-arrow\').classList.toggle(\'rotate-180\')"><span class="text-xs font-medium text-amber-700">📖 使用说明</span><svg class="tips-arrow w-4 h-4 text-amber-500 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></div><div class="hidden mt-1 px-3 py-2 bg-amber-50/50 rounded-xl border border-amber-100/50 text-[11px] text-amber-800 leading-relaxed whitespace-pre-line">' + (skill.tips || '暂无使用说明') + '</div>';
+    inputArea.parentNode.insertBefore(tipsPanel, inputArea.nextSibling);
+
     document.getElementById('detail-result-area').classList.add('hidden');
     renderDetailHistory(skillId);
     document.getElementById('skill-detail').classList.add('active');
@@ -1490,6 +1575,7 @@ function navigateTo(tab) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById('page-' + tab).classList.add('active');
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    if (tab === 'home') renderRecentUsage();
     if (tab === 'tasks') renderTaskList();
     if (tab === 'agents') renderAgentsGrid();
     if (tab === 'profile') fetchCredits();
@@ -1646,6 +1732,7 @@ async function mktGenerateCopy() {
                 '<div id="' + msgId + '" class="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap bg-gray-50 rounded-lg p-2 overflow-y-auto mb-2" style="max-height:300px">' + escapeHtml(result.content) + '</div>' +
                 '<div class="flex gap-1.5 flex-wrap">' +
                 '<button class="px-2 py-1 rounded-lg border border-purple-200 text-purple-600 text-[10px] font-medium" onclick="mktCopyText(\'' + msgId + '\', this)">📋 复制</button>' +
+                '<button class="px-2 py-1 rounded-lg border border-green-200 text-green-600 text-[10px] font-medium" onclick="mktSaveCopyResult(\'' + msgId + '\')">💾 保存到发布</button>' +
                 '<button class="px-2 py-1 rounded-lg border border-gray-200 text-gray-600 text-[10px] font-medium" onclick="mktGenerateCopy()">🔄 重新生成</button>' +
                 '<button class="px-2 py-1 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 text-white text-[10px] font-medium" onclick="switchMarketingTab(\'generate\')">🚀 批量推广</button>' +
                 '</div></div>';
@@ -1856,13 +1943,16 @@ function renderMktPublish() {
     const history = mktLoadHistory();
     const listEl = document.getElementById('mkt-publish-list');
     const emptyEl = document.getElementById('mkt-publish-empty');
+    const toolbar = document.getElementById('mkt-publish-toolbar');
 
     if (history.length === 0) {
         listEl.innerHTML = '';
         emptyEl.classList.remove('hidden');
+        if (toolbar) toolbar.classList.add('hidden');
         return;
     }
     emptyEl.classList.add('hidden');
+    if (toolbar) toolbar.classList.remove('hidden');
 
     listEl.innerHTML = history.slice().reverse().map((item, ri) => {
         const idx = history.length - 1 - ri;
@@ -2149,6 +2239,164 @@ function checkWfAutoGenerate() {
     return needsGen;
 }
 
+
+// ===== 文案页快捷模板 =====
+const MKT_COPY_TEMPLATES = {
+    xiaohongshu_tpl: { platform: 'xiaohongshu', text: '产品名称：\n核心卖点（1-2个）：\n目标人群（年龄/性别）：\n价格区间：\n使用场景：\n与竞品相比的优势：' },
+    douyin_tpl: { platform: 'douyin', text: '视频主题：\n时长（15秒/30秒/1分钟）：\n拍摄方式（口播/展示/Vlog）：\n目标效果（种草/转化/涨粉）：\n需要的关键话术：' },
+    wechat_tpl: { platform: 'wechat', text: '文章主题：\n目标字数（800/1500/3000字）：\n内容类型（教程/测评/观点/故事）：\n核心论点或卖点：\n目标读者画像：' },
+    weibo_tpl: { platform: 'weibo', text: '话题/热点：\n品牌/产品名：\n核心传播信息（一句话）：\n互动方式（投票/提问/抽奖）：\n是否需要话题标签：' }
+};
+function mktFillTemplate(tplKey) {
+    const tpl = MKT_COPY_TEMPLATES[tplKey];
+    if (!tpl) return;
+    document.getElementById('mkt-product-input').value = tpl.text;
+    // Auto select platform chip
+    document.querySelectorAll('.mkt-platform-chip').forEach(c => {
+        c.classList.remove('border-purple-500', 'bg-purple-50', 'text-purple-700');
+        c.classList.add('border-gray-200', 'text-gray-600');
+        if (c.dataset.platform === tpl.platform) {
+            c.classList.add('border-purple-500', 'bg-purple-50', 'text-purple-700');
+            c.classList.remove('border-gray-200', 'text-gray-600');
+            mktSelectedPlatform = tpl.platform;
+        }
+    });
+    showToast('模板已填充');
+}
+
+// ===== 保存文案结果到发布管理 =====
+function mktSaveCopyResult(elId) {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    const content = el.textContent.trim();
+    if (!content) { showToast('内容为空'); return; }
+    mktSaveHistory({
+        id: Date.now().toString(),
+        date: new Date().toISOString().slice(0, 10),
+        product: mktLastProduct || '文案生成',
+        platforms: [mktSelectedPlatform || 'xiaohongshu'],
+        copy: [{ platform: mktSelectedPlatform || 'xiaohongshu', content: content }],
+        image: '',
+        video: '',
+    });
+    showToast('✅ 已保存到发布管理');
+}
+
+// ===== 批量页快捷产品模板 =====
+const MKT_GEN_TEMPLATES = {
+    ecom: '产品名称：\n品类：\n核心卖点（最多3个）：\n目标人群：\n价格：\n主要销售平台（淘宝/京东/拼多多）：\n差异化优势：',
+    food: '店名/品牌名：\n主打菜品：\n特色食材/工艺：\n人均消费：\n地址/城市：\n目标人群（白领/学生/家庭）：\n推荐场景（约会/聚餐/打卡）：',
+    edu: '课程名称：\n适合人群：\n课程亮点（师资/效果/服务）：\n课时/周期：\n价格区间：\n学员成果/案例：\n免费试听政策：',
+    saas: '产品名称：\n产品定位（一句话）：\n核心功能（3个以内）：\n目标用户：\n价格模式（免费/月费/年费）：\n与竞品对比优势：\n免费试用政策：'
+};
+function mktFillGenTemplate(tplKey) {
+    const tpl = MKT_GEN_TEMPLATES[tplKey];
+    if (!tpl) return;
+    document.getElementById('mkt-gen-product').value = tpl;
+    showToast('模板已填充');
+}
+
+// ===== 从文案页导入到批量页 =====
+function mktImportFromCopy() {
+    const history = mktLoadHistory();
+    if (!history.length) { showToast('文案页暂无生成记录'); return; }
+    const latest = history[history.length - 1];
+    let importText = latest.product || '';
+    if (latest.copy && latest.copy.length > 0) {
+        importText += '\n\n已有文案参考：\n' + latest.copy[0].content.substring(0, 200) + (latest.copy[0].content.length > 200 ? '...' : '');
+    }
+    document.getElementById('mkt-gen-product').value = importText;
+    // Restore platforms
+    if (latest.platforms && latest.platforms.length > 0) {
+        document.querySelectorAll('.mkt-gen-cb').forEach(cb => {
+            cb.checked = latest.platforms.includes(cb.value);
+        });
+    }
+    showToast('✅ 已导入最新文案内容');
+}
+
+// ===== 发布管理：一键复制全部 =====
+function mktCopyAllPublish() {
+    const history = mktLoadHistory();
+    if (!history.length) { showToast('暂无内容'); return; }
+    let allText = '# 营销内容汇总\n\n';
+    history.forEach((item, idx) => {
+        allText += '## ' + (item.product || '未命名') + ' (' + (item.date || '') + ')\n\n';
+        if (item.copy && item.copy.length > 0) {
+            item.copy.forEach(c => {
+                const p = MKT_PLATFORMS[c.platform] || { name: c.platform, emoji: '📄' };
+                allText += '### ' + p.emoji + ' ' + p.name + '\n\n' + c.content + '\n\n';
+            });
+        }
+        if (item.image) {
+            allText += '### 🎨 配图提示词\n\n' + item.image + '\n\n';
+        }
+        if (item.video) {
+            allText += '### 🎬 视频脚本\n\n' + item.video + '\n\n';
+        }
+        allText += '---\n\n';
+    });
+    navigator.clipboard.writeText(allText).then(() => showToast('✅ 已复制全部内容')).catch(() => showToast('复制失败'));
+}
+
+// ===== 发布管理：导出Markdown =====
+function mktExportMarkdown() {
+    const history = mktLoadHistory();
+    if (!history.length) { showToast('暂无内容'); return; }
+    let md = '# 智能营销助手 - 内容导出\n\n';
+    md += '导出时间：' + new Date().toLocaleString('zh-CN') + '\n\n';
+    md += '---\n\n';
+    history.forEach((item, idx) => {
+        md += '## ' + (idx + 1) + '. ' + (item.product || '未命名') + '\n\n';
+        md += '**日期**: ' + (item.date || '') + '  \n';
+        const platNames = (item.platforms || []).map(pid => (MKT_PLATFORMS[pid] || {}).name || pid).join('、');
+        md += '**平台**: ' + platNames + '\n\n';
+        if (item.copy && item.copy.length > 0) {
+            item.copy.forEach(c => {
+                const p = MKT_PLATFORMS[c.platform] || { name: c.platform, emoji: '📄' };
+                md += '### ' + p.emoji + ' ' + p.name + ' 文案\n\n' + c.content + '\n\n';
+            });
+        }
+        if (item.image) {
+            md += '### 🎨 配图提示词\n\n' + item.image + '\n\n';
+        }
+        if (item.video) {
+            md += '### 🎬 视频脚本\n\n' + item.video + '\n\n';
+        }
+        md += '---\n\n';
+    });
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = '营销内容_' + new Date().toISOString().slice(0, 10) + '.md';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('✅ Markdown已下载');
+}
+
+// ===== 工作流预设模板 =====
+function mktLoadWfTemplate(tplKey) {
+    const templates = {
+        daily: { product: '日常运营内容', description: '品牌日常运营推广，保持用户活跃度和品牌曝光', platforms: ['xiaohongshu', 'wechat', 'weibo'], types: { copy: true, image: true, video: false }, frequency: 'daily', extra: '风格轻松有趣，融入日常场景' },
+        launch: { product: '新品上市推广', description: '新产品上市全渠道推广计划，快速建立产品认知', platforms: ['xiaohongshu', 'douyin', 'wechat', 'weibo', 'zhihu'], types: { copy: true, image: true, video: true }, frequency: '2days', extra: '突出产品创新点和首发优惠' },
+        festival: { product: '节日营销活动', description: '节日主题营销活动推广，借势营销提升销量', platforms: ['xiaohongshu', 'douyin', 'wechat', 'weibo'], types: { copy: true, image: true, video: true }, frequency: 'weekly', extra: '结合节日热点，突出活动优惠和限定款' }
+    };
+    const tpl = templates[tplKey];
+    if (!tpl) return;
+    // Open modal with template data pre-filled
+    openWfModal();
+    document.getElementById('mkt-wf-modal-title').textContent = '添加项目（模板）';
+    document.getElementById('mkt-wf-product').value = tpl.product;
+    document.getElementById('mkt-wf-desc').value = tpl.description;
+    document.getElementById('mkt-wf-extra').value = tpl.extra;
+    document.querySelectorAll('.mkt-wf-plat-cb').forEach(cb => { cb.checked = tpl.platforms.includes(cb.value); });
+    document.getElementById('mkt-wf-type-copy').checked = tpl.types.copy;
+    document.getElementById('mkt-wf-type-image').checked = tpl.types.image;
+    document.getElementById('mkt-wf-type-video').checked = tpl.types.video;
+    document.querySelectorAll('.mkt-wf-freq-radio').forEach(r => { r.checked = r.value === tpl.frequency; });
+    showToast('模板已加载，请修改产品信息后保存');
+}
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
 init();
