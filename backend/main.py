@@ -280,6 +280,15 @@ async def serve_download():
     return FileResponse(os.path.join(frontend_path, "download.html"))
 
 
+@app.get("/sitemap.xml")
+async def sitemap():
+    sitemap_file = os.path.join(frontend_path, "sitemap.xml")
+    if os.path.isfile(sitemap_file):
+        return FileResponse(sitemap_file, media_type="application/xml")
+    from fastapi.responses import HTMLResponse
+    return HTMLResponse("<h1>sitemap.xml not found</h1>", status_code=404)
+
+
 @app.get("/health")
 async def health_check():
     return {"status": "ok", "message": "Marketing Craft 运行中", "version": "2.2.0"}
