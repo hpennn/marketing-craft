@@ -284,6 +284,24 @@ async def download_apk():
     return JSONResponse({"error": "APK not found"}, status_code=404)
 
 
+
+@app.get("/download/exe")
+async def download_exe():
+    file_path = os.path.join(frontend_path, "app.exe")
+    if os.path.isfile(file_path):
+        return FileResponse(file_path, media_type="application/octet-stream", filename="智能营销助手.exe")
+    from fastapi.responses import JSONResponse
+    return JSONResponse({"error": "EXE not found"}, status_code=404)
+
+
+@app.get("/download/dmg")
+async def download_dmg():
+    file_path = os.path.join(frontend_path, "app-mac.tar.gz")
+    if os.path.isfile(file_path):
+        return FileResponse(file_path, media_type="application/octet-stream", filename="智能营销助手-macOS.tar.gz")
+    from fastapi.responses import JSONResponse
+    return JSONResponse({"error": "DMG not found"}, status_code=404)
+
 @app.get("/download.html")
 async def serve_download():
     return FileResponse(os.path.join(frontend_path, "download.html"))
