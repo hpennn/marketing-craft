@@ -275,6 +275,15 @@ async def serve_icon(filename: str):
     return FileResponse(os.path.join(frontend_path, "icons", filename))
 
 
+@app.get("/download/apk")
+async def download_apk():
+    apk_path = os.path.join(frontend_path, "app.apk")
+    if os.path.isfile(apk_path):
+        return FileResponse(apk_path, media_type="application/vnd.android.package-archive", filename="智能营销助手-v1.0.apk")
+    from fastapi.responses import JSONResponse
+    return JSONResponse({"error": "APK not found"}, status_code=404)
+
+
 @app.get("/download.html")
 async def serve_download():
     return FileResponse(os.path.join(frontend_path, "download.html"))
