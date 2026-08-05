@@ -275,30 +275,30 @@ async def serve_icon(filename: str):
     return FileResponse(os.path.join(frontend_path, "icons", filename))
 
 
+
 @app.get("/download/apk")
 async def download_apk():
     apk_path = os.path.join(frontend_path, "app.apk")
     if os.path.isfile(apk_path):
-        return FileResponse(apk_path, media_type="application/vnd.android.package-archive", filename="智能营销助手-v1.0.apk")
+        return FileResponse(apk_path, media_type="application/vnd.android.package-archive", filename="智能营销助手.apk", headers={"accept-ranges": "bytes"})
     from fastapi.responses import JSONResponse
     return JSONResponse({"error": "APK not found"}, status_code=404)
 
 
-
 @app.get("/download/exe")
 async def download_exe():
-    file_path = os.path.join(frontend_path, "app.exe")
-    if os.path.isfile(file_path):
-        return FileResponse(file_path, media_type="application/octet-stream", filename="智能营销助手.exe")
+    exe_path = os.path.join(frontend_path, "app.exe")
+    if os.path.isfile(exe_path):
+        return FileResponse(exe_path, media_type="application/octet-stream", filename="智能营销助手.exe", headers={"accept-ranges": "bytes"})
     from fastapi.responses import JSONResponse
     return JSONResponse({"error": "EXE not found"}, status_code=404)
 
 
 @app.get("/download/dmg")
 async def download_dmg():
-    file_path = os.path.join(frontend_path, "app-mac.tar.gz")
-    if os.path.isfile(file_path):
-        return FileResponse(file_path, media_type="application/octet-stream", filename="智能营销助手-macOS.tar.gz")
+    dmg_path = os.path.join(frontend_path, "app-mac.tar.gz")
+    if os.path.isfile(dmg_path):
+        return FileResponse(dmg_path, media_type="application/octet-stream", filename="智能营销助手-mac.tar.gz", headers={"accept-ranges": "bytes"})
     from fastapi.responses import JSONResponse
     return JSONResponse({"error": "DMG not found"}, status_code=404)
 
