@@ -591,6 +591,7 @@
     </div>
 
     <!-- Login Modal -->
+<!-- Login Modal -->
     <div id="login-modal" class="modal-overlay" onclick="if(event.target===this)closeLoginModal()">
         <div class="modal-content px-6 pt-6 pb-8 safe-bottom">
             <div class="flex items-center justify-between mb-6">
@@ -602,24 +603,29 @@
             <div class="space-y-4">
                 <div>
                     <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">手机号</label>
-                    <input type="tel" id="login-phone" placeholder="请输入手机号" maxlength="11" class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:border-indigo-400 transition-all bg-slate-50 focus:bg-white" oninput="this.value=this.value.replace(/[^\d]/g,'')">
+                    <input type="tel" id="login-phone" placeholder="请输入11位手机号" maxlength="11" class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:border-indigo-400 transition-all bg-slate-50 focus:bg-white" oninput="this.value=this.value.replace(/[^\d]/g,''); validateLoginPhone();">
+                    <p id="phone-error" class="text-xs text-rose-500 mt-1.5 hidden">请输入正确的11位手机号</p>
                 </div>
                 <div>
                     <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">验证码</label>
                     <div class="flex gap-2">
-                        <input type="text" id="login-code" placeholder="6位验证码" maxlength="6" class="flex-1 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:border-indigo-400 transition-all bg-slate-50 focus:bg-white" oninput="this.value=this.value.replace(/[^\d]/g,'')">
+                        <input type="text" id="login-code" placeholder="6位数字验证码" maxlength="6" class="flex-1 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:border-indigo-400 transition-all bg-slate-50 focus:bg-white" oninput="this.value=this.value.replace(/[^\d]/g,''); validateLoginCode();">
                         <button id="send-code-btn" onclick="sendLoginCode()" class="px-4 py-3 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-all whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">发送验证码</button>
                     </div>
+                    <p id="code-error" class="text-xs text-rose-500 mt-1.5 hidden">请输入6位数字验证码</p>
+                </div>
+                <div id="login-error-msg" class="hidden bg-rose-50 border border-rose-200 rounded-xl px-4 py-2.5 text-xs text-rose-600 flex items-center gap-2">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span id="login-error-text"></span>
                 </div>
                 <div id="dev-code-hint" class="hidden bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5 text-xs text-amber-700">
                     🔧 开发模式：验证码已自动填入
                 </div>
-                <button id="login-btn" onclick="doLogin()" class="w-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-medium rounded-xl py-3.5 text-sm shadow-lg shadow-indigo-200/50 active:scale-[0.98] transition-all disabled:opacity-50">登录 / 注册</button>
+                <button id="login-btn" onclick="doLogin()" class="w-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-medium rounded-xl py-3.5 text-sm shadow-lg shadow-indigo-200/50 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed">登录 / 注册</button>
                 <p class="text-xs text-slate-400 text-center">首次登录将自动注册账号</p>
             </div>
         </div>
     </div>
-
     <!-- Bottom Navigation -->
     <div class="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-100/80 flex items-center justify-around py-1.5 safe-bottom z-30">
         <button onclick="navigateTo('home')" class="tab-btn active flex flex-col items-center gap-0.5 px-5 py-1.5 rounded-xl" data-tab="home">
@@ -766,31 +772,115 @@ function updateProfileUI() {
 }
 
 // ===== 登录弹窗 =====
+// ===== 登录弹窗 =====
 let loginCountdown = 0;
 let loginTimer = null;
+let isSendingCode = false;
+let isLoggingIn = false;
 
 function openLoginModal() {
     document.getElementById('login-phone').value = '';
     document.getElementById('login-code').value = '';
     document.getElementById('dev-code-hint').classList.add('hidden');
-    document.getElementById('send-code-btn').disabled = false;
-    document.getElementById('send-code-btn').textContent = '发送验证码';
-    document.getElementById('login-btn').disabled = false;
+    hideLoginError();
+    hideFieldError('phone-error');
+    hideFieldError('code-error');
+    const sendBtn = document.getElementById('send-code-btn');
+    sendBtn.disabled = false;
+    sendBtn.textContent = '发送验证码';
+    const loginBtn = document.getElementById('login-btn');
+    loginBtn.disabled = false;
+    loginBtn.textContent = '登录 / 注册';
     document.getElementById('login-modal').classList.add('active');
+    setTimeout(() => document.getElementById('login-phone').focus(), 100);
 }
 
 function closeLoginModal() {
     document.getElementById('login-modal').classList.remove('active');
     if (loginTimer) { clearInterval(loginTimer); loginTimer = null; }
     loginCountdown = 0;
+    isSendingCode = false;
+    isLoggingIn = false;
+}
+
+function validateLoginPhone() {
+    const phone = document.getElementById('login-phone').value.trim();
+    if (phone.length === 0) {
+        hideFieldError('phone-error');
+        return false;
+    }
+    if (!/^1[3-9]\d{9}$/.test(phone)) {
+        showFieldError('phone-error', '请输入正确的11位手机号');
+        return false;
+    }
+    hideFieldError('phone-error');
+    return true;
+}
+
+function validateLoginCode() {
+    const code = document.getElementById('login-code').value.trim();
+    if (code.length === 0) {
+        hideFieldError('code-error');
+        return false;
+    }
+    if (!/^\d{6}$/.test(code)) {
+        showFieldError('code-error', '请输入6位数字验证码');
+        return false;
+    }
+    hideFieldError('code-error');
+    return true;
+}
+
+function showFieldError(id, msg) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.textContent = msg;
+        el.classList.remove('hidden');
+    }
+}
+
+function hideFieldError(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('hidden');
+}
+
+function showLoginError(msg) {
+    const box = document.getElementById('login-error-msg');
+    const text = document.getElementById('login-error-text');
+    if (box && text) {
+        text.textContent = msg;
+        box.classList.remove('hidden');
+    }
+}
+
+function hideLoginError() {
+    const box = document.getElementById('login-error-msg');
+    if (box) box.classList.add('hidden');
+}
+
+function setBtnLoading(btn, loading, originalText, loadingText) {
+    if (loading) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="inline-flex items-center gap-2"><svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>' + loadingText + '</span>';
+    } else {
+        btn.disabled = false;
+        btn.textContent = originalText;
+    }
 }
 
 async function sendLoginCode() {
-    const phone = document.getElementById('login-phone').value.trim();
-    if (!/^1[3-9]\d{9}$/.test(phone)) { showToast('请输入正确的手机号'); return; }
+    if (isSendingCode || loginCountdown > 0) return;
 
+    const phone = document.getElementById('login-phone').value.trim();
+    if (!validateLoginPhone()) {
+        showFieldError('phone-error', '请输入正确的11位手机号');
+        return;
+    }
+
+    hideLoginError();
+    isSendingCode = true;
     const btn = document.getElementById('send-code-btn');
-    btn.disabled = true;
+    setBtnLoading(btn, true, '发送验证码', '发送中...');
 
     try {
         const resp = await fetch(API_BASE + '/auth/send-code', {
@@ -801,8 +891,15 @@ async function sendLoginCode() {
         const data = await resp.json();
 
         if (!resp.ok) {
-            showToast(data.detail || '发送失败');
-            btn.disabled = false;
+            const errMsg = data.detail || '验证码发送失败，请稍后重试';
+            // 区分不同错误类型
+            if (resp.status === 429) {
+                showLoginError(errMsg);
+            } else {
+                showLoginError(errMsg);
+            }
+            setBtnLoading(btn, false, '发送验证码', '');
+            isSendingCode = false;
             return;
         }
 
@@ -812,11 +909,12 @@ async function sendLoginCode() {
             document.getElementById('dev-code-hint').classList.remove('hidden');
         }
 
-        showToast('验证码已发送');
+        showToast('验证码已发送，请注意查收');
 
         // 倒计时60秒
         loginCountdown = 60;
-        btn.textContent = loginCountdown + 's';
+        btn.disabled = true;
+        btn.textContent = loginCountdown + 's 后重发';
         loginTimer = setInterval(() => {
             loginCountdown--;
             if (loginCountdown <= 0) {
@@ -825,25 +923,42 @@ async function sendLoginCode() {
                 btn.disabled = false;
                 btn.textContent = '发送验证码';
             } else {
-                btn.textContent = loginCountdown + 's';
+                btn.textContent = loginCountdown + 's 后重发';
             }
         }, 1000);
     } catch(e) {
-        showToast('网络异常，请重试');
-        btn.disabled = false;
+        showLoginError('网络连接异常，请检查网络后重试');
+        setBtnLoading(btn, false, '发送验证码', '');
+    } finally {
+        isSendingCode = false;
     }
 }
 
 async function doLogin() {
+    if (isLoggingIn) return;
+
     const phone = document.getElementById('login-phone').value.trim();
     const code = document.getElementById('login-code').value.trim();
 
-    if (!/^1[3-9]\d{9}$/.test(phone)) { showToast('请输入正确的手机号'); return; }
-    if (!code || code.length !== 6) { showToast('请输入6位验证码'); return; }
+    let valid = true;
+    if (!/^1[3-9]\d{9}$/.test(phone)) {
+        showFieldError('phone-error', '请输入正确的11位手机号');
+        valid = false;
+    } else {
+        hideFieldError('phone-error');
+    }
+    if (!/^\d{6}$/.test(code)) {
+        showFieldError('code-error', '请输入6位数字验证码');
+        valid = false;
+    } else {
+        hideFieldError('code-error');
+    }
+    if (!valid) return;
 
+    hideLoginError();
+    isLoggingIn = true;
     const btn = document.getElementById('login-btn');
-    btn.disabled = true;
-    btn.textContent = '登录中...';
+    setBtnLoading(btn, true, '登录 / 注册', '登录中...');
 
     try {
         const resp = await fetch(API_BASE + '/auth/login', {
@@ -854,9 +969,19 @@ async function doLogin() {
         const data = await resp.json();
 
         if (!resp.ok) {
-            showToast(data.detail || '登录失败');
-            btn.disabled = false;
-            btn.textContent = '登录 / 注册';
+            const errMsg = data.detail || '登录失败，请稍后重试';
+            // 根据状态码优化提示
+            if (resp.status === 401) {
+                showLoginError(errMsg);  // 验证码错误或已过期
+            } else if (resp.status === 400) {
+                showLoginError(errMsg);
+            } else if (resp.status === 429) {
+                showLoginError(errMsg);
+            } else {
+                showLoginError(errMsg);
+            }
+            setBtnLoading(btn, false, '登录 / 注册', '');
+            isLoggingIn = false;
             return;
         }
 
@@ -873,15 +998,23 @@ async function doLogin() {
         closeLoginModal();
 
         // 刷新用户信息和积分
-        await checkAuth();
-        await fetchCredits();
+        try {
+            await checkAuth();
+        } catch(e) { console.warn('checkAuth failed', e); }
+        try {
+            await fetchCredits();
+        } catch(e) { console.warn('fetchCredits failed', e); }
+        // 刷新profile UI
+        if (typeof updateProfileUI === 'function') {
+            updateProfileUI();
+        }
     } catch(e) {
-        showToast('网络异常，请重试');
-        btn.disabled = false;
-        btn.textContent = '登录 / 注册';
+        showLoginError('网络连接异常，请检查网络后重试');
+        setBtnLoading(btn, false, '登录 / 注册', '');
+    } finally {
+        isLoggingIn = false;
     }
 }
-
 async function doLogout() {
     try {
         await fetch(API_BASE + '/auth/logout', {
