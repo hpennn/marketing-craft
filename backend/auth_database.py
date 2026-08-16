@@ -1,13 +1,13 @@
 """
-用户认证数据库模块 - 手机号登录注册、JWT Token管理
+用户认证数据库模块 - 用户名+邮箱+密码登录注册、JWT Token管理
 与积分数据库共享同一 data/ai_staff.db 文件
 """
 
 import os
 import sqlite3
 import secrets
+import hashlib
 import re
-import random
 from datetime import datetime, timedelta
 from typing import Optional
 
@@ -36,23 +36,29 @@ def init_auth_db():
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            phone TEXT UNIQUE NOT NULL,
+            username TEXT UNIQUE NOT NULL,
+            email TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
             nickname TEXT DEFAULT '',
             created_at TEXT NOT NULL,
             last_login_at TEXT
         )
     """)
 
-    # 验证码表（复用已有的phone_codes表，增加每日计数支持）
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS phone_codes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            phone TEXT NOT NULL,
-            code TEXT NOT NULL,
-            expires_at TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
+    # 迁移：旧版phone字段升级（如果存在旧表则添加新字段）
+    try:
+        cursor.execute("PRAGMA table_info(users)")
+        columns = {row["name"] for row in cursor.fetchall()}
+        if "phone" in columns and "username" not in columns:
+            # 旧表需要迁移 - 添加新列
+            cursor.execute("ALTER TABLE users ADD COLUMN username TEXT")
+            cursor.execute("ALTER TABLE users ADD COLUMN email TEXT")
+            cursor.execute("ALTER TABLE users ADD COLUMN password_hash TEXT")
+            # 将 phone 值迁移到 username 作为默认值
+            cursor.execute("UPDATE users SET username = phone WHERE username IS NULL")
+            cursor.execute("UPDATE users SET email = phone || '@example.com' WHERE email IS NULL")
+    except Exception:
+        pass
 
     # 用户JWT Token表
     cursor.execute("""
@@ -82,119 +88,68 @@ def init_auth_db():
     conn.close()
 
 
-# ============ 手机号验证 ============
+# ============ 密码哈希 ============
 
-def validate_phone(phone: str) -> bool:
-    """验证中国大陆手机号格式"""
-    return bool(re.match(r'^1[3-9]\d{9}$', phone))
-
-
-def generate_code() -> str:
-    """生成6位数字验证码"""
-    return ''.join([str(random.randint(0, 9)) for _ in range(6)])
+def hash_password(password: str) -> str:
+    """使用 sha256 + salt 进行密码哈希"""
+    salt = "ai_staff_auth_salt_2026"
+    return hashlib.sha256((salt + password).encode()).hexdigest()
 
 
-# ============ 验证码操作 ============
-
-def save_verification_code(phone: str, code: str) -> None:
-    """保存验证码，5分钟有效"""
-    conn = get_auth_db()
-    now = datetime.now().isoformat()
-    expires = (datetime.now() + timedelta(minutes=5)).isoformat()
-    conn.execute(
-        "INSERT INTO phone_codes (phone, code, expires_at, created_at) VALUES (?, ?, ?, ?)",
-        (phone, code, expires, now),
-    )
-    conn.commit()
-    conn.close()
+def verify_password(password: str, password_hash: str) -> bool:
+    """验证密码是否匹配"""
+    return hash_password(password) == password_hash
 
 
-def check_code_rate_limit(phone: str) -> tuple[bool, str]:
-    """检查验证码发送频率限制
-    - 60秒内不能重复发送
-    - 每天最多10条
-    返回 (allowed, error_message)
-    """
-    conn = get_auth_db()
-    cursor = conn.cursor()
-    now = datetime.now()
-    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+# ============ 用户名/邮箱验证 ============
 
-    # 检查最近一条的发送时间（60秒间隔）
-    cursor.execute("""
-        SELECT created_at FROM phone_codes
-        WHERE phone = ? ORDER BY created_at DESC LIMIT 1
-    """, (phone,))
-    last = cursor.fetchone()
-    if last:
-        last_time = datetime.fromisoformat(last["created_at"])
-        if (now - last_time).total_seconds() < 60:
-            conn.close()
-            return False, "验证码发送过于频繁，请60秒后重试"
+def validate_username(username: str) -> bool:
+    """验证用户名格式：3-20位字母、数字、下划线"""
+    return bool(re.match(r'^[a-zA-Z0-9_]{3,20}$', username))
 
-    # 检查今日发送数量（每天最多10条）
-    cursor.execute("""
-        SELECT COUNT(*) as cnt FROM phone_codes
-        WHERE phone = ? AND created_at >= ?
-    """, (phone, today_start))
-    count = cursor.fetchone()["cnt"]
-    if count >= 10:
-        conn.close()
-        return False, "今日验证码发送次数已达上限，请明天再试"
 
-    conn.close()
+def validate_email(email: str) -> bool:
+    """验证邮箱格式"""
+    return bool(re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email))
+
+
+def validate_password_strength(password: str) -> tuple[bool, str]:
+    """验证密码强度，返回 (valid, error_message)"""
+    if len(password) < 6:
+        return False, "密码长度至少6位"
+    if len(password) > 128:
+        return False, "密码长度不能超过128位"
     return True, ""
-
-
-def verify_code(phone: str, code: str) -> bool:
-    """验证验证码是否正确且未过期"""
-    conn = get_auth_db()
-    cursor = conn.cursor()
-    now = datetime.now().isoformat()
-
-    cursor.execute("""
-        SELECT id FROM phone_codes
-        WHERE phone = ? AND code = ? AND expires_at > ?
-        ORDER BY created_at DESC LIMIT 1
-    """, (phone, code, now))
-    row = cursor.fetchone()
-
-    if not row:
-        conn.close()
-        return False
-
-    # 验证码使用后删除，防止重放
-    cursor.execute("DELETE FROM phone_codes WHERE phone = ?", (phone,))
-    conn.commit()
-    conn.close()
-    return True
 
 
 # ============ 用户操作 ============
 
-def create_or_get_user(phone: str) -> dict:
-    """创建或获取用户（手机号登录时自动注册）"""
+def create_user(username: str, email: str, password: str) -> dict:
+    """创建新用户
+    Raises: ValueError if username or email already exists
+    """
     conn = get_auth_db()
     now = datetime.now().isoformat()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT * FROM users WHERE phone = ?", (phone,))
-    user = cursor.fetchone()
-
-    if user:
-        # 更新最后登录时间
-        conn.execute("UPDATE users SET last_login_at = ? WHERE id = ?", (now, user["id"]))
-        conn.commit()
-        result = dict(user)
-        result["last_login_at"] = now
+    # 检查用户名是否已存在
+    cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
+    if cursor.fetchone():
         conn.close()
-        return result
+        raise ValueError("用户名已存在")
 
-    # 新用户注册
-    nickname = f"用户{phone[-4:]}"
+    # 检查邮箱是否已存在
+    cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
+    if cursor.fetchone():
+        conn.close()
+        raise ValueError("邮箱已被注册")
+
+    # 创建用户
+    password_hash = hash_password(password)
+    nickname = username
     cursor.execute(
-        "INSERT INTO users (phone, nickname, created_at, last_login_at) VALUES (?, ?, ?, ?)",
-        (phone, nickname, now, now),
+        "INSERT INTO users (username, email, password_hash, nickname, created_at, last_login_at) VALUES (?, ?, ?, ?, ?, ?)",
+        (username, email, password_hash, nickname, now, now),
     )
     conn.commit()
     user_id = cursor.lastrowid
@@ -211,19 +166,39 @@ def get_user_by_id(user_id: int) -> Optional[dict]:
     return dict(row) if row else None
 
 
-def get_user_by_phone(phone: str) -> Optional[dict]:
-    """通过手机号获取用户"""
+def get_user_by_username(username: str) -> Optional[dict]:
+    """通过用户名获取用户"""
     conn = get_auth_db()
-    row = conn.execute("SELECT * FROM users WHERE phone = ?", (phone,)).fetchone()
+    row = conn.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchone()
     conn.close()
     return dict(row) if row else None
 
 
-def mask_phone(phone: str) -> str:
-    """手机号脱敏：138****1234"""
-    if len(phone) == 11:
-        return phone[:3] + "****" + phone[7:]
-    return phone
+def get_user_by_email(email: str) -> Optional[dict]:
+    """通过邮箱获取用户"""
+    conn = get_auth_db()
+    row = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def get_user_by_login(login: str) -> Optional[dict]:
+    """通过用户名或邮箱获取用户（登录时使用）"""
+    # 先尝试用户名
+    user = get_user_by_username(login)
+    if user:
+        return user
+    # 再尝试邮箱
+    return get_user_by_email(login)
+
+
+def update_last_login(user_id: int) -> None:
+    """更新用户最后登录时间"""
+    conn = get_auth_db()
+    now = datetime.now().isoformat()
+    conn.execute("UPDATE users SET last_login_at = ? WHERE id = ?", (now, user_id))
+    conn.commit()
+    conn.close()
 
 
 # ============ Token 操作 ============
@@ -251,7 +226,7 @@ def verify_token(token: str) -> Optional[dict]:
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT t.user_id, t.expires_at, u.phone, u.nickname, u.created_at, u.last_login_at
+        SELECT t.user_id, t.expires_at, u.username, u.email, u.nickname, u.created_at, u.last_login_at
         FROM user_tokens t
         JOIN users u ON t.user_id = u.id
         WHERE t.token = ?
