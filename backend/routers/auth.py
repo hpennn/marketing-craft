@@ -1,53 +1,52 @@
 """
-认证路由 - 管理员认证 + 用户手机号验证码登录
+认证路由 - 管理员认证 + 用户用户名/邮箱密码登录注册
 """
 from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel
 from typing import Optional
 from database import get_db
 import secrets
-import hashlib
 import re
 import random
-import time
-from datetime import datetime, timedelta
+from datetime import datetime
 
 # 用户认证模块
 from auth_database import (
-    validate_phone, generate_code,
-    save_verification_code, check_code_rate_limit, verify_code,
-    create_or_get_user, get_user_by_id, mask_phone,
+    validate_username, validate_email, validate_password_strength,
+    create_user, get_user_by_id, get_user_by_login,
+    verify_password, update_last_login,
     create_token, verify_token, delete_token, bind_device, find_user_by_device,
 )
-from sms_service import send_sms
 
 # 积分迁移
 from credits_database import register_user, get_user_credits, add_credits, get_user
 
 router = APIRouter()
 
-# ---- Pydantic models (保留原有admin模型) ----
+# ---- Pydantic models ----
 
-class PhoneCodeRequest(BaseModel):
-    phone: str
+class RegisterRequest(BaseModel):
+    username: str
+    email: str
+    password: str
+    device_id: Optional[str] = ""
 
-class PhoneLoginRequest(BaseModel):
-    phone: str
-    code: str
 
-# 新增：用户登录请求（含deviceId用于积分迁移）
-class UserLoginRequest(BaseModel):
-    phone: str
-    code: str
-    device_id: Optional[str] = ""  # 用于积分迁移
+class LoginRequest(BaseModel):
+    login: str  # 用户名或邮箱
+    password: str
+    device_id: Optional[str] = ""
+
 
 class AuthResponse(BaseModel):
     token: str
-    phone: str
+    user: dict
+
 
 class MeResponse(BaseModel):
     id: int
-    phone: str
+    username: str
+    email: str
     created_at: str
 
 
@@ -77,10 +76,10 @@ async def get_current_admin(request: Request):
     return dict(row)
 
 
-# ---- User Auth dependency (新增) ----
+# ---- User Auth dependency ----
 
 async def get_current_user(request: Request):
-    """获取当前登录用户（普通用户，手机号登录）"""
+    """获取当前登录用户（普通用户，用户名/邮箱+密码登录）"""
     auth_header = request.headers.get("Authorization", "")
     if not auth_header.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="未登录")
@@ -121,6 +120,14 @@ def _validate_phone(phone: str) -> bool:
 
 # ---- 原有Admin send-code (保留) ----
 
+class PhoneCodeRequest(BaseModel):
+    phone: str
+
+class PhoneLoginRequest(BaseModel):
+    phone: str
+    code: str
+
+
 @router.post("/auth/admin-send-code")
 async def admin_send_verification_code(req: PhoneCodeRequest):
     """管理员发送手机验证码"""
@@ -157,7 +164,7 @@ async def admin_send_verification_code(req: PhoneCodeRequest):
     }
 
 
-# ---- 原有Admin phone-login (保留，改名为admin-login) ----
+# ---- 原有Admin phone-login (保留) ----
 
 @router.post("/auth/admin-login")
 async def admin_phone_login(req: PhoneLoginRequest):
@@ -234,76 +241,43 @@ async def admin_logout(request: Request):
 
 
 # ============================================
-# 新增：用户手机号登录注册 API
+# 用户注册 / 登录 API（用户名+邮箱+密码）
 # ============================================
 
-@router.post("/auth/send-code")
-async def user_send_code(req: PhoneCodeRequest):
-    """用户发送手机验证码
-    
-    - 验证手机号格式
-    - 检查60秒间隔 + 每日10条限制
-    - 开发模式：验证码在响应中返回
-    - 生产模式：调用阿里云SMS
-    """
-    phone = req.phone.strip()
-
-    if not validate_phone(phone):
-        raise HTTPException(status_code=400, detail="请输入正确的手机号码")
-
-    # 频率限制检查
-    allowed, error_msg = check_code_rate_limit(phone)
-    if not allowed:
-        raise HTTPException(status_code=429, detail=error_msg)
-
-    # 生成验证码
-    code = generate_code()
-
-    # 发送短信
-    sms_result = send_sms(phone, code)
-
-    if not sms_result["success"]:
-        raise HTTPException(status_code=500, detail=sms_result["message"])
-
-    # 保存验证码到数据库
-    save_verification_code(phone, code)
-
-    response = {
-        "message": sms_result["message"],
-        "expire_seconds": 300,
-    }
-
-    # 开发模式返回验证码
-    if sms_result.get("code"):
-        response["code"] = sms_result["code"]
-        response["dev_mode"] = True
-
-    return response
-
-
-@router.post("/auth/login")
-async def user_login(req: UserLoginRequest):
-    """用户手机号验证码登录/注册
-    
-    - 验证码校验
-    - 不存在则自动注册
+@router.post("/auth/register")
+async def user_register(req: RegisterRequest):
+    """用户注册
+    - 验证用户名、邮箱、密码格式
+    - 创建用户
     - 生成Token
     - 如果传了device_id，绑定设备并迁移积分
     """
-    phone = req.phone.strip()
-    code = req.code.strip()
+    username = req.username.strip()
+    email = req.email.strip()
+    password = req.password
 
-    if not validate_phone(phone):
-        raise HTTPException(status_code=400, detail="请输入正确的手机号码")
-    if not code:
-        raise HTTPException(status_code=400, detail="请输入验证码")
+    # 验证用户名
+    if not username:
+        raise HTTPException(status_code=400, detail="请输入用户名")
+    if not validate_username(username):
+        raise HTTPException(status_code=400, detail="用户名格式不正确（3-20位字母、数字、下划线）")
 
-    # 验证验证码
-    if not verify_code(phone, code):
-        raise HTTPException(status_code=401, detail="验证码错误或已过期")
+    # 验证邮箱
+    if not email:
+        raise HTTPException(status_code=400, detail="请输入邮箱")
+    if not validate_email(email):
+        raise HTTPException(status_code=400, detail="邮箱格式不正确")
 
-    # 创建或获取用户
-    user = create_or_get_user(phone)
+    # 验证密码强度
+    valid, error_msg = validate_password_strength(password)
+    if not valid:
+        raise HTTPException(status_code=400, detail=error_msg)
+
+    # 创建用户
+    try:
+        user = create_user(username, email, password)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
     # 生成Token
     token = create_token(user["id"])
@@ -322,9 +296,63 @@ async def user_login(req: UserLoginRequest):
         "token": token,
         "user": {
             "id": user["id"],
-            "phone": mask_phone(user["phone"]),
+            "username": user["username"],
+            "email": user["email"],
             "nickname": user.get("nickname", ""),
-            "phone_full": user["phone"],
+        },
+        "migrated": migrated,
+    }
+
+
+@router.post("/auth/login")
+async def user_login(req: LoginRequest):
+    """用户登录（用户名/邮箱 + 密码）
+
+    - 支持用户名或邮箱登录
+    - 验证密码
+    - 生成Token
+    - 如果传了device_id，绑定设备并迁移积分
+    """
+    login = req.login.strip()
+    password = req.password
+
+    if not login:
+        raise HTTPException(status_code=400, detail="请输入用户名或邮箱")
+    if not password:
+        raise HTTPException(status_code=400, detail="请输入密码")
+
+    # 查找用户（支持用户名或邮箱）
+    user = get_user_by_login(login)
+    if not user:
+        raise HTTPException(status_code=401, detail="用户名或密码错误")
+
+    # 验证密码
+    if not verify_password(password, user["password_hash"]):
+        raise HTTPException(status_code=401, detail="用户名或密码错误")
+
+    # 更新最后登录时间
+    update_last_login(user["id"])
+
+    # 生成Token
+    token = create_token(user["id"])
+
+    # 注册积分系统（确保credit_users表中有此用户）
+    user_credit_id = f"user_{user['id']}"
+    register_user(user_credit_id)
+
+    # 绑定设备 & 积分迁移
+    migrated = False
+    if req.device_id:
+        bind_device(user["id"], req.device_id)
+        migrated = _migrate_device_credits(req.device_id, user_credit_id)
+
+    return {
+        "token": token,
+        "user": {
+            "id": user["id"],
+            "username": user["username"],
+            "email": user["email"],
+            "nickname": user.get("nickname", ""),
         },
         "migrated": migrated,
     }
@@ -345,8 +373,8 @@ async def user_me(user: dict = Depends(get_current_user)):
 
     return {
         "id": user_info["id"],
-        "phone": mask_phone(user_info["phone"]),
-        "phone_full": user_info["phone"],
+        "username": user_info["username"],
+        "email": user_info["email"],
         "nickname": user_info.get("nickname", ""),
         "created_at": user_info["created_at"],
         "last_login_at": user_info.get("last_login_at", ""),
@@ -368,7 +396,7 @@ async def user_logout(request: Request):
 
 def _migrate_device_credits(device_id: str, user_credit_id: str) -> bool:
     """将deviceId的积分迁移到用户账号
-    
+
     - 如果deviceId在credit_users表中有积分，且用户账号积分较少
     - 将deviceId的积分合并到用户账号
     - 返回是否发生了迁移
@@ -404,7 +432,7 @@ def _migrate_device_credits(device_id: str, user_credit_id: str) -> bool:
     return True
 
 
-# ---- 兼容：保留原有 phone-login 路由指向新的用户登录 ----
+# ---- 兼容：保留原有 phone-login 路由指向管理员登录 ----
 
 @router.post("/auth/phone-login")
 async def phone_login_compat(req: PhoneLoginRequest):
